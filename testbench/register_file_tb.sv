@@ -77,7 +77,7 @@ task Check_Outputs;
   input logic [31:0] expected_rdat1;
   input logic [31:0] expected_rdat2;
 begin
-  if (register_file_tb.rfif.rdat1 == expected_rdat1 && register_file_tb.rfif.rdat2 == expected_rdat2)
+  assert (register_file_tb.rfif.rdat1 == expected_rdat1 && register_file_tb.rfif.rdat2 == expected_rdat2)
     $display("PASSED: %s", test_case);
   else $display("FAILED: %s", test_case);
 end
