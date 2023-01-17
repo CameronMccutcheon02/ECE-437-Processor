@@ -1,9 +1,12 @@
+
+`include "register_file_if.vh"
+
 module register_file (
     //Write Inputs
-    input logic CLK, nRST
+    input logic CLK, nRST,
     register_file_if.rf rfif
 
-)
+);
 
 logic [31:0] Primary_Data [31:0]; //Initialize primary data
 logic [31:0] Primary_Data_nxt [31:0]; //Initialize primary data
