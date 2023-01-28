@@ -22,4 +22,55 @@ module memory_control (
   // number of cpus for cc
   parameter CPUS = 1;
 
+  always_comb begin: MEM_LOGIC
+    // From Cache
+      // iREN
+      // dREN
+      // dWEN
+      // dstore
+      // iaddr
+      // daddr
+    // From RAM
+      // ramload
+      // ramstate
+
+    // the wait signals are inverted to be used as the hit signals by the cache
+    ccif.iwait = 1'b1; // set low when fetching instruction
+    ccif.dwait = 1'b1; // set low when accessing data
+    ccif.iload = '0;
+    ccif.dload = '0;
+
+    ccif.ramREN = 1'b0;
+    ccif.ramWEN = 1'b0;
+    ccif.ramaddr = '0;
+    ccif.ramstore = '0;
+
+    if (ccif.dWEN) begin // writing to data memory
+      // TO CACHE
+      ccif.dwait = ~(ccif.ramstate == ACCESS);
+      ccif.dload = '0;
+
+      // TO RAM
+      ccif.ramWEN = 1'b1;
+      ccif.ramaddr = ccif.daddr;
+      ccif.ramstore = ccif.dstore;
+    end else if(ccif.dREN) begin // reading from data memory
+      // TO CACHE
+      ccif.dwait = ~(ccif.ramstate == ACCESS);
+      ccif.dload = ccif.ramload;
+
+      // TO RAM
+      ccif.ramREN = 1'b1;
+      ccif.ramaddr = ccif.daddr;
+    end else begin // reading from instruction memory
+      // TO CACHE
+      ccif.iwait = ~(ccif.ramstate == ACCESS);
+      ccif.iload = ccif.ramload;
+
+      // TO RAM
+      ccif.ramREN = 1'b1;
+      ccif.ramaddr = ccif.iaddr;
+    end
+  end
+
 endmodule
