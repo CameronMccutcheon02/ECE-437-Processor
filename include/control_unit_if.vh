@@ -18,19 +18,21 @@ interface CU_if;
     funct_t     funct_op; //Instr <5:0>
 
     aluop_t     alu_op; //alu opcode typedef
-    logic       neg, zero, over;
-    word_t      port_a, port_b, port_o;
+    logic       RegDst, Branch, MemRead, MemToReg, MemWrite, RegWrite;
+    logic [1:0] ExtType, Jump;
 
 
     // register file ports
     modport CU (
-        input   alu_op, port_a, port_b,
-        output  neg, zero, over, port_o
+        input   instr_op, funct_op,
+        output  alu_op, 
+        output  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType
     );
     // register file tb
     modport tb (
-        output   alu_op, port_a, port_b,
-        input  neg, zero, over, port_o
+        output   instr_op, funct_op,
+        input  alu_op, 
+        input  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType
     );
 endinterface
 

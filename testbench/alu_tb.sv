@@ -185,7 +185,7 @@ initial begin
   tb_test_case_num = tb_test_case_num+ 1;
   display_test_banner();
   command = ALU_SLL;
-  send_command(command, 1, 1);
+  send_command(command, 16, 1);
   send_command(command, 1, 2);
   send_command(command, 4, 2);
 
