@@ -97,6 +97,10 @@ endmodule
 program test(input logic CLK, output logic nRST, system_if.tb syif);
   // import word type
   import cpu_types_pkg::word_t;
+  parameter PERIOD = 10;
+  string tb_test_case;
+  integer tb_test_case_num;
+  logic tb_mismatch, tb_check;
 
   // number of cycles
   int unsigned cycles = 0;
@@ -166,4 +170,7 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
       $display("Finished memory dump.");
     end
   endtask
+
+
+
 endprogram

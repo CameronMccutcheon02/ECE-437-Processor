@@ -203,7 +203,7 @@ initial begin
       cif0.daddr = i*4;
       //if (cif0.dwait == 0)
         //  continue;
-      @(negedge CLK)
+      @(negedge CLK);
       while(ccif.dwait == 1) begin 
         @(negedge CLK);
       end

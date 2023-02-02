@@ -2,7 +2,7 @@ org   0x0000
 ORI $29, $0, 0xFFFC
 ori   $1,$zero,0xF0
 
-ori $2, $0, 0x0C
+ori $2, $0, 0x1C
 
 JR $2
 

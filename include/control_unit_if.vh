@@ -9,7 +9,7 @@
 // all types
 `include "cpu_types_pkg.vh"
 
-interface CU_if;
+interface control_unit_if;
     // import types
     import cpu_types_pkg::*;
     
@@ -18,21 +18,21 @@ interface CU_if;
     funct_t     funct_op; //Instr <5:0>
 
     aluop_t     alu_op; //alu opcode typedef
-    logic       RegDst, Branch, MemRead, MemToReg, MemWrite, RegWrite;
-    logic [1:0] ExtType, Jump;
+    logic       RegDst, Branch, MemRead, MemWrite, RegWrite, JAL, ALUSRC, halt, stall;
+    logic [1:0] ExtType, Jump, MemToReg;
 
 
     // register file ports
     modport CU (
-        input   instr_op, funct_op,
+        input   instr_op, funct_op, stall,
         output  alu_op, 
-        output  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType
+        output  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType, JAL, ALUSRC, halt
     );
     // register file tb
     modport tb (
-        output   instr_op, funct_op,
+        output   instr_op, funct_op, stall,
         input  alu_op, 
-        input  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType
+        input  RegDst, Jump, Branch, MemRead, MemToReg, MemWrite, RegWrite, ExtType, JAL, ALUSRC, halt
     );
 endinterface
 
