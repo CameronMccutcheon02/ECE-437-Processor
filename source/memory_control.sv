@@ -45,23 +45,19 @@ module memory_control (
     ccif.ramaddr = '0;
     ccif.ramstore = '0;
 
-    if (ccif.dWEN) begin // writing to data memory
+    if (ccif.dWEN | ccif.dREN) begin // reading/writing to data memory
       // TO CACHE
       ccif.dwait = ~(ccif.ramstate == ACCESS);
-      ccif.dload = '0;
+      if (ccif.dREN)
+        ccif.dload = ccif.ramload;
 
       // TO RAM
-      ccif.ramWEN = 1'b1;
       ccif.ramaddr = ccif.daddr;
-      ccif.ramstore = ccif.dstore;
-    end else if(ccif.dREN) begin // reading from data memory
-      // TO CACHE
-      ccif.dwait = ~(ccif.ramstate == ACCESS);
-      ccif.dload = ccif.ramload;
-
-      // TO RAM
-      ccif.ramREN = 1'b1;
-      ccif.ramaddr = ccif.daddr;
+      if (ccif.dWEN) begin
+        ccif.ramWEN = 1'b1;
+        ccif.ramstore = ccif.dstore;
+      end else
+        ccif.ramREN = 1'b1;
     end else begin // reading from instruction memory
       // TO CACHE
       ccif.iwait = ~(ccif.ramstate == ACCESS);

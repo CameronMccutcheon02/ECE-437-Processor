@@ -37,16 +37,16 @@ module system_tb;
   system                              DUT (CLK,nRST,syif);
 
   // CPU Tracker. Uncomment and change signal names to enable.
-  /*
+  
   cpu_tracker                         cpu_track0 (
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // Since single cycle, this is just PC enable
-    .wb_stall(~DUT.CPU.DP.pc0_en),
+    .wb_stall(~DUT.CPU.DP.pcif.EN),
     // The 'funct' portion of an instruction. Must be of funct_t type
-    .funct(DUT.CPU.DP.funct),
+    .funct(DUT.CPU.DP.func),
     // The 'opcode' portion of an instruction. Must be of opcode_t type
-    .opcode(DUT.CPU.DP.op_code),
+    .opcode(DUT.CPU.DP.op),
     // The 'rs' portion of an instruction
     .rs(DUT.CPU.DP.rs),
     // The 'rt' portion of an instruction
@@ -56,16 +56,16 @@ module system_tb;
     // Make sure the interface (dpif) matches your name
     .instr(DUT.CPU.DP.dpif.imemload),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.PC0),
+    .pc(DUT.CPU.DP.pcif.PC),
     // Connect the next PC value (the next registered value) here
-    .npc(DUT.CPU.DP.pc_selected),
+    .npc(DUT.CPU.DP.pcif.next_PC),
     // The final imm/shamt signals
     // This means it should already be shifted/extended/whatever
-    .imm(DUT.CPU.DP.imm_shamt_out),
-    .shamt(DUT.CPU.DP.imm_shamt_out),
+    .imm(DUT.CPU.DP.FinalImm),
+    .shamt(DUT.CPU.DP.shamt),
      .lui(DUT.CPU.DP.imm),
     // The branch target (aka offset added to npc)
-    .branch_addr(DUT.CPU.DP.pc_branch),
+    .branch_addr(DUT.CPU.DP.BranchAddr),
     // Make sure the interface (dpif) matches your name
     .dat_addr(DUT.CPU.DP.dpif.dmemaddr),
     // Make sure the interface (dpif) matches your name
@@ -77,7 +77,7 @@ module system_tb;
     // Make sure the interface (dpif) matches your name
     .dhit(DUT.CPU.DP.dpif.dhit)
   );
-  */
+  
 
 `else
   system                              DUT (,,,,//for altera debug ports
