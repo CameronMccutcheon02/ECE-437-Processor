@@ -27,6 +27,8 @@ module datapath (
   // pc init
   parameter PC_INIT = 0;
 
+//Local Declarations
+  //*******************************************\\
   // interfaces
   alu_if aluif();
   control_unit_if cuif();
@@ -50,7 +52,12 @@ module datapath (
   logic [4:0] shamt;
   logic [15:0] imm;
   funct_t func;
+  //*******************************************\\
+//
 
+
+//Instruction routing - will need some of these for the pipelining forwarding unit
+  //*******************************************\\
   always_comb begin: Instruction_Signals
     Instruction = dpif.imemload;
     op = opcode_t'(Instruction[31:26]);
@@ -61,8 +68,12 @@ module datapath (
     shamt = Instruction[10:6];
     func = funct_t'(Instruction[5:0]);
   end
+  //*******************************************\\
+//
 
-  // Datapath Signals
+  
+//Datapath
+  //*******************************************\\
   word_t npc;
   word_t ZeroExtImm;
   word_t SignExtImm;
@@ -74,10 +85,11 @@ module datapath (
   always_comb begin: Datapath_Signals
     npc = pcif.PC + 32'd4;
     ZeroExtImm = {16'h0000, imm};
-    if (imm[15] == 1'b1)
-      SignExtImm = {16'hffff, imm};
-    else
-      SignExtImm = {16'h0000, imm};
+    SignExtImm = {{16{imm[15]}}, imm}
+    // if (imm[15] == 1'b1)
+    //   SignExtImm = {16'hffff, imm};
+    // else
+    //   SignExtImm = {16'h0000, imm};
     JumpAddr = {npc[31:28], Instruction[25:0], 2'b00};
     JRAddr = rfif.rdat1;
     if ((cuif.BEQ & aluif.zero) | (cuif.BNE & ~aluif.zero))
@@ -89,28 +101,40 @@ module datapath (
     else
       FinalImm = ZeroExtImm;
   end 
+  //*******************************************\\
+//
 
-  // ALU
+
+//ALU
+  //*******************************************\\
   always_comb begin: ALU_Logic
     aluif.ALUOP = cuif.ALUctr;
     aluif.porta = rfif.rdat1;
     if (~cuif.ALUSrc)
-      aluif.portb = rfif.rdat2;
+      aluif.portb = rfif.rdat2; //Cam's notes- we can definitely do the routing of the sign extender a little better- take a look at it when we get to the pipelining
     else if (cuif.ExtOP)
       aluif.portb = SignExtImm;
     else
       aluif.portb = ZeroExtImm;
   end
+  //*******************************************\\
+//
 
-  // Control Unit
+
+// Control Unit
+  //*******************************************\\
   always_comb begin: Control_Unit_Logic
     cuif.opcode = op;
     cuif.func = func;
     cuif.ihit = dpif.ihit;
     cuif.dhit = dpif.dhit;
   end
+  //*******************************************\\
+//
 
-  // Register File
+
+//Register File
+  //*******************************************\\
   always_comb begin: Register_File_Logic
     rfif.WEN = cuif.RegWr & (dpif.ihit | dpif.dhit);
 
@@ -131,8 +155,12 @@ module datapath (
       2'd3: rfif.wdat = {imm, 16'b0};
     endcase
   end
+  //*******************************************\\
+//
 
-  // Request Unit
+
+//Request Unit
+  //*******************************************\\
   always_comb begin: Request_Unit_Logic
     ruif.ihit = dpif.ihit;
     ruif.dhit = dpif.dhit;
@@ -140,8 +168,12 @@ module datapath (
     ruif.dREN = cuif.dREN;
     ruif.dWEN = cuif.dWEN;
   end
+  //*******************************************\\
+//
 
-  // Program Counter
+
+// Program Counter
+  //*******************************************\\
   always_comb begin: Program_Counter_Logic
     case (cuif.JumpSel)
       2'd0: pcif.next_PC = BranchAddr;
@@ -151,8 +183,12 @@ module datapath (
     endcase
     pcif.EN = dpif.ihit;
   end
+  //*******************************************\\
+//
 
-  // Datapath
+
+//Datapath External Routings
+  //*******************************************\\
   always_comb begin: Datapath_Logic
     dpif.imemREN = cuif.iREN;
     dpif.imemaddr = pcif.PC;
@@ -161,6 +197,8 @@ module datapath (
     dpif.dmemstore = rfif.rdat2;
     dpif.dmemaddr = aluif.oport;
   end
+  //*******************************************\\
+//
 
   always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic
     if (~nRST)
