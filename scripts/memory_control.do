@@ -1,26 +1,27 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /memory_control_tb/PROG/tb_test_case
+add wave -noupdate /memory_control_tb/passed
+add wave -noupdate /memory_control_tb/total
 add wave -noupdate /memory_control_tb/CLK
 add wave -noupdate /memory_control_tb/nRST
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramWEN
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramREN
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramstate
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramaddr
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramstore
-add wave -noupdate -expand -group {Ram Side} /memory_control_tb/DUT1/ccif/ramload
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/iwait
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/dwait
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/iREN
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/dREN
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/dWEN
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/iload
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/dload
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/dstore
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/iaddr
-add wave -noupdate -expand -group {Better Cache Side} /memory_control_tb/ccif/cif0/daddr
+add wave -noupdate /memory_control_tb/cif0/iwait
+add wave -noupdate /memory_control_tb/cif0/dwait
+add wave -noupdate /memory_control_tb/cif0/iREN
+add wave -noupdate /memory_control_tb/cif0/dREN
+add wave -noupdate /memory_control_tb/cif0/dWEN
+add wave -noupdate /memory_control_tb/cif0/iload
+add wave -noupdate /memory_control_tb/cif0/dload
+add wave -noupdate /memory_control_tb/cif0/dstore
+add wave -noupdate /memory_control_tb/cif0/iaddr
+add wave -noupdate /memory_control_tb/cif0/daddr
+add wave -noupdate /memory_control_tb/ramif/ramREN
+add wave -noupdate /memory_control_tb/ramif/ramWEN
+add wave -noupdate /memory_control_tb/ramif/ramaddr
+add wave -noupdate /memory_control_tb/ramif/ramstore
+add wave -noupdate /memory_control_tb/ramif/ramload
+add wave -noupdate /memory_control_tb/ramif/ramstate
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {645642 ps} 0}
+WaveRestoreCursors {{Cursor 1} {158055000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -36,4 +37,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {3031150 ps} {5214150 ps}
+WaveRestoreZoom {0 ps} {483167 ns}

@@ -1,37 +1,30 @@
 org 0x0000
 
-MAIN:
-ORI $29, $0, 0xFFFC
-
-ORI $5, $0, 10
-PUSH $5 #push first op to stack
-
-ORI $5, $0, 10
-PUSH $5 #push op to stack
-
-ORI $5, $0, 700
-PUSH $5 #push op to stack
-
-MULT:
-
-STACK: 
-ORI $2, $0, 0xFFF8
-BEQ $29, $2, FINISH #if we only have one operand on the stack, we are done
-
-POP $4 #pull 2nd op from stack
-POP $5 #pull 1st of from stack
-OR $3, $0, $0 #clear temp reg
-
-LOOP:
-BEQ $5, $0, LOOPEND
-ADD $3, $3, $4
-ADDI $5, $5, -1
-J LOOP
-
-LOOPEND: 
-PUSH $3
-J STACK
-
-
-FINISH:
-HALT
+Test:
+    ori $29, $0, 0xFFFC
+    ori $8, $0, 2
+    push $8
+    ori $8, $0, 3
+    push $8
+    ori $8, $0, 4
+    push $8
+    NotEmpty:
+        ori $9, $0, 0xFFFC
+        addi $8, $9, -4 # empty stack case
+        beq $8, $29, Exit
+        jal Mult
+        j NotEmpty
+    Exit:
+        halt
+Mult:
+    ori $2, $0, 0 # result reg
+    pop $3 # loops this many times
+    pop $4 # adds this number to result each loop
+    Loop:
+        beq $3, $0, Return
+        addi $3, $3, -1
+        add $2, $4, $2
+        j Loop
+    Return:
+        push $2
+        jr $31 # return to NotEmpty

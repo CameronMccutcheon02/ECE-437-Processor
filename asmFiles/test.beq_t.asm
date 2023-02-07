@@ -1,16 +1,12 @@
-org   0x0000
-ORI $29, $0, 0xFFFC
-ori   $1,$zero,0xF0
-ori   $2,$zero,0xF0
+org 0x0000
 
-#should take branch here
-BEQ $1, $2, EQUAL
+ori $29, $0, 0xFFFC
+beq $0, $0, BRANCH
+ori $8, $0, 0x0BAD
+sw $8, 0x00F0($0)
+halt
 
-ori $2, $0, 0x0BAD
-sw $2, 0($1)
-HALT
-
-EQUAL:
-ori $2, $0, 0xF0F0
-sw $2, 0($1)
-HALT
+BRANCH:
+    ori $8, $0, 0xABCD
+    sw $8, 0x00F0($0)
+    halt

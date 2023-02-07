@@ -1,73 +1,75 @@
-/*
-  Eric Villasenor
-  evillase@gmail.com
-
-  register file fpga wrapper
-*/
-
-// interface
 `include "alu_if.vh"
 
 module alu_fpga (
-  input logic CLOCK_50,
-  input logic [3:0] KEY,
-  input logic [17:0] SW,
-  output logic [6:0] HEX0, HEX1, HEX2,HEX3,HEX4,HEX5,HEX6,HEX7
+    input logic CLOCK_50,
+    input logic [3:0] KEY,
+    input logic [17:0] SW,
+    output logic [3:0] LEDG,
+    output logic [17:0] LEDR,
+    output logic [6:0]  HEX7, HEX6, HEX5, 
+    HEX4, HEX3, HEX2, HEX1, HEX0
 );
 
-  // interface
-  alu_if aluif();
-  // rf
-  alu DUT(aluif);
+    // Interface
+    alu_if aluif ();
+    // ALU
+    alu ALU(aluif);
 
-assign aluif.alu_op = aluop_t'(KEY[3:0]);
+    // Inputs
+    assign aluif.ALUOP[3:0] = ~KEY[3:0];
+    
+    always_comb begin: Port_A_Logic
+        if (SW[16])
+            aluif.porta = {16'hffff, SW[15:0]};
+        else
+            aluif.porta = {16'b0, SW[15:0]};
+    end
 
-LUT H0(.val(aluif.port_o[3:0]),   .HEX0(HEX0));
-LUT H1(.val(aluif.port_o[7:4]),   .HEX0(HEX1));
-LUT H2(.val(aluif.port_o[11:8]),  .HEX0(HEX2));
-LUT H3(.val(aluif.port_o[15:12]), .HEX0(HEX3));
-LUT H4(.val(aluif.port_o[19:16]), .HEX0(HEX4));
-LUT H5(.val(aluif.port_o[23:20]), .HEX0(HEX5));
-LUT H6(.val(aluif.port_o[27:24]), .HEX0(HEX6));
-LUT H7(.val(aluif.port_o[31:27]), .HEX0(HEX7));
+    always_ff @(posedge CLOCK_50) begin: Port_B_Logic
+        if (SW[17])
+            aluif.portb <= aluif.porta;
+        else
+            aluif.portb <= aluif.portb;
+    end
 
-always_ff @(posedge CLOCK_50) begin
-  if (SW[17]) 
-    aluif.port_b = {{16{SW[16]}}, SW[15:0]};
-end
+    // Output
+    assign LEDG[3:0] = aluif.ALUOP;
+    assign LEDR[3:0] = {aluif.negative, aluif.zero, aluif.overflow};
 
-assign aluif.port_a = {{16{SW[16]}}, SW[15:0]};
-
+    ssd hex0(aluif.oport[3:0], HEX0);
+    ssd hex1(aluif.oport[7:4], HEX1);
+    ssd hex2(aluif.oport[11:8], HEX2);
+    ssd hex3(aluif.oport[15:12], HEX3);
+    ssd hex4(aluif.oport[19:16], HEX4);
+    ssd hex5(aluif.oport[23:20], HEX5);
+    ssd hex6(aluif.oport[27:24], HEX6);
+    ssd hex7(aluif.oport[31:28], HEX7);
 
 endmodule
 
-
-module LUT (
-  input [3:0] val,
-  output [6:0] HEX0
+module ssd (
+    input logic [3:0] out,
+    output logic [6:0] HEX
 );
-
-always_comb
-  begin
-    unique casez (val)
-      'h0: HEX0 = 7'b1000000;
-      'h1: HEX0 = 7'b1111001;
-      'h2: HEX0 = 7'b0100100;
-      'h3: HEX0 = 7'b0110000;
-      'h4: HEX0 = 7'b0011001;
-      'h5: HEX0 = 7'b0010010;
-      'h6: HEX0 = 7'b0000010;
-      'h7: HEX0 = 7'b1111000;
-      'h8: HEX0 = 7'b0000000;
-      'h9: HEX0 = 7'b0010000;
-      'ha: HEX0 = 7'b0001000;
-      'hb: HEX0 = 7'b0000011;
-      'hc: HEX0 = 7'b0100111;
-      'hd: HEX0 = 7'b0100001;
-      'he: HEX0 = 7'b0000110;
-      'hf: HEX0 = 7'b0001110;
-    endcase
-  end
-
-
+    always_comb begin: Out_Logic
+        case (out)
+            4'h0: HEX = 7'b1000000;
+            4'h1: HEX = 7'b1111001;
+            4'h2: HEX = 7'b0100100;
+            4'h3: HEX = 7'b0110000;
+            4'h4: HEX = 7'b0011001;
+            4'h5: HEX = 7'b0010010;
+            4'h6: HEX = 7'b0000010;
+            4'h7: HEX = 7'b1111000;
+            4'h8: HEX = 7'b0000000;
+            4'h9: HEX = 7'b0010000;
+            4'hA: HEX = 7'b0001000;
+            4'hB: HEX = 7'b0000011;
+            4'hC: HEX = 7'b0100111;
+            4'hD: HEX = 7'b0100001;
+            4'hE: HEX = 7'b0000110;
+            4'hF: HEX = 7'b0001110;
+        endcase
+    end
+    
 endmodule

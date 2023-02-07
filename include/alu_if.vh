@@ -1,33 +1,26 @@
-/*
-  Cameron McCutcheon
-
-  ALU interface
-*/
 `ifndef ALU_IF_VH
 `define ALU_IF_VH
 
-// all types
 `include "cpu_types_pkg.vh"
 
 interface alu_if;
-  // import types
-  import cpu_types_pkg::*;
+    import cpu_types_pkg::*;
 
-  aluop_t   alu_op; //alu opcode typedef
-  logic     neg, zero, over;
-  word_t    port_a, port_b, port_o;
+    aluop_t ALUOP;
+    word_t porta, portb, oport;
+    logic negative, zero, overflow;
 
+    // alu ports
+    modport alu (
+        input ALUOP, porta, portb,
+        output oport, negative, zero, overflow
+    );
+    // alu tb
+    modport tb (
+        input oport, negative, zero, overflow,
+        output ALUOP, porta, portb
+    );
 
-  // register file ports
-  modport alu (
-    input   alu_op, port_a, port_b,
-    output  neg, zero, over, port_o
-  );
-  // register file tb
-  modport tb (
-    output   alu_op, port_a, port_b,
-    input  neg, zero, over, port_o
-  );
 endinterface
 
-`endif //REGISTER_FILE_IF_VH
+`endif

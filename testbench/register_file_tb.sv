@@ -21,11 +21,6 @@ module register_file_tb;
 
   logic CLK = 0, nRST;
 
-  // test vars
-  int v1 = 1;
-  int v2 = 4721;
-  int v3 = 25119;
-
   // clock
   always #(PERIOD/2) CLK++;
 
@@ -53,184 +48,90 @@ module register_file_tb;
 
 endmodule
 
-
-program test (
-  input logic CLK,
-  
-  output logic nRST,
-  register_file_if.tb tbif
-
-);
-
-parameter PERIOD = 10;
-string tb_test_case;
-integer tb_test_case_num;
-logic tb_mismatch, tb_check;
-task reset_dut;
-  begin
-    // Activate the reset
-    tbif.WEN = 0;
-    tbif.wsel =0;
-    tbif.rsel1 = 0;
-    tbif.rsel2 = 0;
-    tbif.wdat = 0;
-    nRST = 1'b0;
-
-    // Maintain the reset for more than one cycle
-    @(posedge CLK);
-    @(posedge CLK);
-
-    // Wait until safely away from rising edge of the clock before releasing
-    @(negedge CLK);
-    nRST = 1'b1;
-
-    // Leave out of reset for a couple cycles before allowing other stimulus
-    // Wait for negative clock edges, 
-    // since inputs to DUT should normally be applied away from rising clock edges
-    @(negedge CLK);
-    @(negedge CLK);
-  end
-endtask
-
-task check_outputs;
-  input real expected_r1, expected_r2;
+task Async_Reset_DUT;
 begin
-  #(0.1);
-  tb_mismatch = 0;
-  tb_check = 1;
-  if(expected_r1 == rfif.rdat1) begin // Check passed
-    $info("Correct 'r1' output %s during %s test case", tb_test_case, tb_test_case_num);
-  end
-  else begin // Check failed
-    tb_mismatch = 1;
-    $error("Incorrect 'r1' output %s during %s test case", tb_test_case, tb_test_case_num);
-  end
+  register_file_tb.nRST = 0;
 
-  if(expected_r2 == rfif.rdat2) begin // Check passed
-    $info("Correct 'r2' output %s during %s test case", tb_test_case, tb_test_case_num);
-  end
-  else begin // Check failed
-    tb_mismatch = 1;
-    $error("Incorrect 'r2' output %s during %s test case", tb_test_case, tb_test_case_num);
-  end
-  #(0.1);
-  tb_check = 0;
+  #(register_file_tb.PERIOD);
+  #(register_file_tb.PERIOD);
+
+  register_file_tb.nRST = 1;
+
+  #(register_file_tb.PERIOD);
+  #(register_file_tb.PERIOD);
 end
 endtask
 
-
-task read_write_reg;
-  input logic WEN;
-  input integer write_reg_num;
-  input real write_data;
-  input integer read_reg_num_1, read_reg_num_2;
-  input real expected_r1, expected_r2;
+task Reset_Input;
 begin
-  @(negedge CLK);
-  //Write Section
-  tbif.wdat = write_data;
-  tbif.WEN = WEN;
-  tbif.wsel = write_reg_num;
-
-  tbif.rsel1 = read_reg_num_1;
-  tbif.rsel2 = read_reg_num_2;
-
-  @(posedge CLK);
-  #(PERIOD*0.1);
-  check_outputs(expected_r1, expected_r2);
-
+  register_file_tb.rfif.rsel1 = '0;
+  register_file_tb.rfif.rsel2 = '0;
+  register_file_tb.rfif.wsel = '0;
+  register_file_tb.rfif.wdat = '0;
+  register_file_tb.rfif.WEN = 0;
 end
-
 endtask
 
-
-//int data[int];
-
-//***********************************************************************\\
-//Test 1- Reset Test
-//***********************************************************************\\
-
-initial begin
-  tb_test_case = "Reset Case";
-  tb_test_case_num = 1;
-reset_dut();
-
-//Check that all the outputs are correct
-
-
-  for (integer i = 0; i < 32; i++) begin
-    read_write_reg(0,0,0,i,i,0,0);
-
-  end
-//***********************************************************************\\
-//Test 2- Standard Test
-//***********************************************************************\\
-tb_test_case = "Standard Test Case";
-tb_test_case_num = tb_test_case_num + 1;
-reset_dut();
-  
-//Check that all the outputs are correct
-//Lets set all the registers to have values from 0 to 31
-  for (integer i = 1; i < 32; i++) begin
-    read_write_reg(1,i,i,i-1,0,i-1,0);
-
-  end
-
-
-//***********************************************************************\\
-//Test 3- Write Large Values test
-//***********************************************************************\\
-tb_test_case = "Large Values";
-tb_test_case_num = tb_test_case_num + 1;
-reset_dut();
-//Check that all the outputs are correct
-//Lets set all the registers to have values from 0 to 31
-  for (integer i = 1; i < 32; i++) begin
-    read_write_reg( .WEN(1),
-                    .write_reg_num(i),
-                    .write_data(2147483647), //INT max positive value
-                    .read_reg_num_1(i-1),
-                    .read_reg_num_2(0),
-                    .expected_r1(2147483647),
-                    .expected_r2(0)
-                    );
-
-  end
-
-
-//***********************************************************************\\
-//Test 4- Write to 0
-//***********************************************************************\\
-tb_test_case = "Write to 0";
-tb_test_case_num = tb_test_case_num + 1;
-reset_dut();
-//Check that all the outputs are correct
-//Lets set all the registers to have values from 0 to 31
-read_write_reg( .WEN(1),
-                    .write_reg_num(0),
-                    .write_data(69),
-                    .read_reg_num_1(10),
-                    .read_reg_num_2(10),
-                    .expected_r1(0),
-                    .expected_r2(0)
-                    ); //Attempt to Write to 0
-
-read_write_reg( .WEN(1), //Read from 0
-                    .write_reg_num(0),
-                    .write_data(0),
-                    .read_reg_num_1(0),
-                    .read_reg_num_2(0),
-                    .expected_r1(0), //Both read from 0 should be 0
-                    .expected_r2(0)
-                    );
-
-//***********************************************************************\\
-//Test 5- Async Reset Test
-//***********************************************************************\\
-tb_test_case = "Async Reset";
-tb_test_case_num = tb_test_case_num + 1;
-@(negedge CLK)
-reset_dut();
-
+task Check_Outputs;
+  input string test_case;
+  input logic [31:0] expected_rdat1;
+  input logic [31:0] expected_rdat2;
+begin
+  assert (register_file_tb.rfif.rdat1 == expected_rdat1 && register_file_tb.rfif.rdat2 == expected_rdat2)
+    $display("PASSED: %s", test_case);
+  else $display("FAILED: %s", test_case);
 end
+endtask
+
+program test;
+  integer i;
+  string format;
+  initial begin
+    // ************************************************************************
+    // Test Case 0: Initialize Design
+    // ************************************************************************
+    Reset_Input();
+    Async_Reset_DUT();
+
+    $display("---TEST CASE 0: Initialization---");
+    Check_Outputs("Initialization", '0, '0);
+    $display(""); 
+
+    // ************************************************************************
+    // Test Case 1: Write to Reg0
+    // ************************************************************************
+    Reset_Input();
+    Async_Reset_DUT();
+
+    register_file_tb.rfif.wdat = 32'h12345678;
+    register_file_tb.rfif.WEN = 1;
+    register_file_tb.rfif.wsel = '0;
+    register_file_tb.rfif.rsel1 = '0;
+    register_file_tb.rfif.rsel2 = '0;
+
+    $display("---TEST CASE 1: Writes to Reg 0---");
+    Check_Outputs("Writes to Reg 0", '0, '0);
+    $display("");
+    // ************************************************************************
+    // Test Case 2: Normal Reads and Writes
+    // ************************************************************************
+    Reset_Input();
+    Async_Reset_DUT();
+    
+    $display("---TEST CASE 2: Normal Reads and Writes---");
+    for (i = 1; i < 32; i++) begin
+      #(register_file_tb.PERIOD);
+      register_file_tb.rfif.rsel1 = i;
+      register_file_tb.rfif.rsel2 = i;
+      register_file_tb.rfif.WEN = 1;
+      register_file_tb.rfif.wdat = i;
+      register_file_tb.rfif.wsel = i;
+      #(register_file_tb.PERIOD);
+      $sformat(format,"Reading and Writing to Reg %0d", i);
+      Check_Outputs(format, register_file_tb.rfif.wdat, register_file_tb.rfif.wdat);
+    end
+    $display("");
+
+    $finish;
+  end
 endprogram

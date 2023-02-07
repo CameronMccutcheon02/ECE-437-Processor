@@ -1,16 +1,12 @@
-org   0x0000
-ORI $29, $0, 0xFFFC
-ori   $1,$zero,0xF0
+org 0x0000
 
-ori $2, $0, 0x1C
+ori $29, $0, 0xFFFC
+ori $8, $0, 0x0018
+jr $8
+ori $8, $0, 0x0BAD
+sw $8, 0x00F0($0)
+halt
 
-JR $2
-
-ori $2, $0, 0x0BAD
-sw $2, 0($1)
-HALT
-
-Jloc:
-ori $2, $0, 0xf0f0
-sw $2, 0($1)
-HALT
+ori $8, $0, 0xABCD
+sw $8, 0x00F0($0)
+halt

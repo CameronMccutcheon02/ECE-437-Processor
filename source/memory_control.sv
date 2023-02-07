@@ -37,83 +37,51 @@ modport cc
   // number of cpus for cc
   parameter CPUS = 1;
 
+  always_comb begin: MEM_LOGIC
+    // From Cache
+      // iREN
+      // dREN
+      // dWEN
+      // dstore
+      // iaddr
+      // daddr
+    // From RAM
+      // ramload
+      // ramstate
 
+    // the wait signals are inverted to be used as the hit signals by the cache
+    ccif.iwait = 1'b1; // set low when fetching instruction
+    ccif.dwait = 1'b1; // set low when accessing data
+    ccif.iload = '0;
+    ccif.dload = '0;
 
+    ccif.ramREN = 1'b0;
+    ccif.ramWEN = 1'b0;
+    ccif.ramaddr = '0;
+    ccif.ramstore = '0;
 
-always_comb begin
-  ccif.iwait = 1; //Set waits to default to 1
-  ccif.dwait = 1; //datapath will see access ability when xwait = 0
-  ccif.iload = ccif.ramload;
-  ccif.dload = ccif.ramload;
-  ccif.ramstore = 0;
-  ccif.ramaddr = 0;
-  ccif.ramWEN = 0; //Note that on default (no datapath signals)
-  ccif.ramREN = 0; //the ramstate will go to FREE
-
-
-
-
-
-  if(ccif.dWEN) ccif.ramWEN = 1; //When dwrite is high, ram needs to know
-  else if(ccif.dREN || ccif.iREN) ccif.ramREN = 1; //When dread or iread is high, ram needs to know -> this block gives write priority
-
-  if(ccif.dWEN) ccif.ramstore = ccif.dstore; //on store, ram gets the data from cache
-
-  if(ccif.dWEN || ccif.dREN) ccif.ramaddr = ccif.daddr; //on data transfer, data addr used->gives data type priority
-  else if(ccif.iREN) ccif.ramaddr = ccif.iaddr;
-
-
-
-  case(ccif.ramstate)
-// FREE: begin 
-    //   //Note that the datapath will need to be coded such that 
-    //   //the address (for i and d) will be frozen when wait signals are pulled
-    //   //They are required
-    //   if(ccif.dWEN) begin
-    //     ccif.ramstore = ccif.dstore;
-    //     ccif.ramaddr = ccif.daddr;
-    //   end
-    //   else if(ccif.dREN) begin
-    //     ccif.ramaddr = ccif.daddr; 
-    //   end
-    //   else if(ccif.iREN) begin
-    //     ccif.ramaddr = ccif.iaddr;
-    //   end
-    // end
-
-    // BUSY: begin
-    //   if(ccif.dWEN) begin
-    //     ccif.ramstore = ccif.dstore;
-    //     ccif.ramaddr = ccif.daddr;
-    //   end
-    //   else if(ccif.dREN) begin
-    //     ccif.ramaddr = ccif.daddr;
-
-    //   end
-    //   else if(ccif.iREN) begin
-    //     ccif.ramaddr = ccif.iaddr;
-    //   end
-// end
-
-    ACCESS: begin
-      if(ccif.dWEN) begin
-        ccif.dwait = 0;
-      end
-      else if(ccif.dREN) begin
-        ccif.dwait = 0;
+    if (ccif.dWEN | ccif.dREN) begin // reading/writing to data memory
+      // TO CACHE
+      ccif.dwait = ~(ccif.ramstate == ACCESS);
+      if (ccif.dREN)
         ccif.dload = ccif.ramload;
-      end
-      else if(ccif.iREN) begin
-        ccif.iwait = 0;
-        ccif.iload = ccif.ramload;
-      end
-    end
 
-    ERROR: begin
-      //No idea what to do here, do we wait? do we just cry?
-    end
-  endcase
+      // TO RAM
+      ccif.ramaddr = ccif.daddr;
+      if (ccif.dWEN) begin
+        ccif.ramWEN = 1'b1;
+        ccif.ramstore = ccif.dstore;
+      end else
+        ccif.ramREN = 1'b1;
+    end else begin // reading from instruction memory
+      // TO CACHE
+      ccif.iwait = ~(ccif.ramstate == ACCESS);
+      ccif.iload = ccif.ramload;
 
-end
+      // TO RAM
+      ccif.ramREN = 1'b1;
+      ccif.ramaddr = ccif.iaddr;
+    end
+  end
 
 endmodule

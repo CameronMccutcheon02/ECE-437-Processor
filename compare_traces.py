@@ -130,4 +130,3 @@ if __name__ == '__main__':
   if ret:
     cmd = ['diff', '-y', 'cleaned_cpu_trace.log', 'cleaned_sim_trace.log']
     subprocess.call(cmd)
-

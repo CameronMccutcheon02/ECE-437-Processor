@@ -1,208 +1,148 @@
-/*
-  Cameron McCutcheon
+`include "request_unit_if.vh"
 
-  DP test bench
-*/
-
-`include "datapath_cache_if.vh"
-
-import cpu_types_pkg::*;
-
-// mapped timing needs this. 1ns is too fast
-`ifdef MAPPED
 `timescale 1 ns / 1 ns
-`endif
 
+module request_unit_tb ();
 
-module request_unit_tb;
     parameter PERIOD = 10;
 
-    logic CLK = 0, nRST; //Technically don't need the clock, but we can use it to regularly space out stuff
+    int passed = 0;
+    int total = 0;
 
-    // clock
+    logic CLK = 0, nRST;
+
     always #(PERIOD/2) CLK++;
 
     request_unit_if ruif();
-    
-    request_unit DUT(.CLK(CLK), .nRST(nRST), .ruif(ruif));
 
-    test PROG(.CLK(CLK), .nRST(nRST), .ruif(ruif));
+    test PROG ();
 
+`ifndef MAPPED
+    request_unit RU(CLK, nRST, ruif);
+`else
+    request_unit RU(
+        .ruif.iREN (ruif.iREN),
+        .ruif.dREN (ruif.dREN),
+        .ruif.dWEN (ruif.dWEN),
+        .ruif.ihit (ruif.ihit),
+        .ruif.dhit (ruif.dhit),
+        .ruif.dmemREN (ruif.dmemREN),
+        .ruif.dmemWEN (ruif.dmemWEN),
+        .nRST (nRST),
+        .CLK (CLK)
+    )
+`endif 
 
 endmodule
 
+program test;
+    initial begin
+        // ************************************************************************
+        // Test Case 0: Reset Test Case
+        // ************************************************************************
+        New_Test(0, "Reset Test Case");
+        Reset_DUT();
 
+        Check_Outputs(0,0);
 
-program test (
-  input logic CLK,
-  
-  output logic nRST,
-  request_unit_if.RU ruif  //memory cache to controller, we only need one here because the other isn't used in lab 3
+        // ************************************************************************
+        // Test Case 1: Instruction Ready
+        // ************************************************************************
+        New_Test(1, "Instruction Ready");
+        Reset_DUT();
 
-);
+        request_unit_tb.ruif.ihit = 1'b1;
+        request_unit_tb.ruif.dREN = 1'b0;
+        request_unit_tb.ruif.dWEN = 1'b1;
 
-parameter PERIOD = 10;
-string tb_test_case;
-integer tb_test_case_num;
-logic tb_mismatch, tb_check;
+        #(request_unit_tb.PERIOD);
+        Check_Outputs(1'b0, 1'b1);
 
-task reset_dut;
-  begin
-    automatic string temp = tb_test_case;
-    tb_test_case = "Reset";
-    // Activate the reset
-    nRST = 1'b0;
+        // ************************************************************************
+        // Test Case 2: Data Ready
+        // ************************************************************************
+        New_Test(2, "Data Ready");
+        Reset_DUT();
 
-    // Maintain the reset for more than one cycle
-    @(posedge CLK);
-    @(posedge CLK);
+        request_unit_tb.ruif.dhit = 1'b1;
+        request_unit_tb.ruif.dREN = 1'b1;
+        request_unit_tb.ruif.dWEN = 1'b1;
 
-    // Wait until safely away from rising edge of the clock before releasing
-    @(negedge CLK);
-    nRST = 1'b1;
+        #(request_unit_tb.PERIOD);
+        Check_Outputs(1'b0, 1'b0);
 
-    // Leave out of reset for a couple cycles before allowing other stimulus
-    // Wait for negative clock edges, 
-    // since inputs to DUT should normally be applied away from rising clock edges
-    @(negedge CLK);
-    @(negedge CLK);
-    @(posedge CLK);
-    tb_test_case = temp;
-  end
-endtask
+        // ************************************************************************
+        // Test Case 3: Nothing Ready
+        // ************************************************************************
+        New_Test(3, "Nothing Ready");
+        Reset_DUT();
 
-task check_outputs;
-    input logic R, W;
-    begin
-        if(R == ruif.MemRead) begin
-        $display("State: O_Output nzv");
-            $write("%c[1;32m",27);
-            $write("PASSED ");
-            $write("%c[0m",27);
-            
-            $display("");
-        end
-        else begin // Check failed
-            tb_mismatch = 1;
-            $display("State: O_Output nzv");
-            $write("%c[1;31m",27);
-            $write("FAILED ");
-            $write("%c[0m",27);
-        end
+        request_unit_tb.ruif.dREN = 1'b1;
+        request_unit_tb.ruif.dWEN = 1'b1;
 
-        if(W == ruif.MemWrite) begin
-        $display("State: O_Output nzv");
-            $write("%c[1;32m",27);
-            $write("PASSED ");
-            $write("%c[0m",27);
-            
-            $display("");
-        end
-        else begin // Check failed
-            tb_mismatch = 1;
-            $display("State: O_Output nzv");
-            $write("%c[1;31m",27);
-            $write("FAILED ");
-            $write("%c[0m",27);
-        end
+        #(request_unit_tb.PERIOD);
+        Check_Outputs(1'b0, 1'b0);
 
+        $display("Passed %0d / %0d", request_unit_tb.passed, request_unit_tb.total);
 
+        $finish;
     end
 
+    task Reset_DUT;
+    begin
+        request_unit_tb.nRST = 0;
 
+        #(request_unit_tb.PERIOD);
+        #(request_unit_tb.PERIOD);
 
-endtask
+        request_unit_tb.nRST = 1;
 
+        #(request_unit_tb.PERIOD);
+        #(request_unit_tb.PERIOD);
+    end
+    endtask
 
-task display_test_banner; 
-begin
-  $display("//***********************************************************************\\");
-  $display("Test case %d: ", tb_test_case_num, tb_test_case);
-  $display("//***********************************************************************\\");
-end
-endtask
+    task New_Test;
+    input integer test_num;
+    input string test_string;
+    begin
+        $display("");
+        $display("************************************************************************");
+        $display("Test Case %0d: %s", test_num, test_string);
+        $display("************************************************************************");
+        $display("// TODO: add header values");
+    end
+    endtask
 
-//*******************************************************************\\
-//ACTUAL TEST CASES BELOW HERE
-//*******************************************************************\\
-initial begin
-    tb_test_case_num = 0;
-    ruif.ihit = 0;
-    ruif.dhit = 0;
-    ruif.MemRead = 0;
-    ruif.MemWrite = 0;
-  
-//*******************************************\\
-//Test Case 1: Reset Case
-//*******************************************\ \
-    tb_test_case = "Reset";
-    tb_test_case_num = tb_test_case_num +1;
-    display_test_banner();
-    reset_dut();
-
-
-//*******************************************\\
-//Test Case 1: ihit case
-//*******************************************\\
-    tb_test_case = "ihit";
-    tb_test_case_num = tb_test_case_num + 1;
-    display_test_banner();
-    @(posedge CLK)
-    ruif.ihit = 1;
-    @(posedge CLK)
-    ruif.ihit = 0;
-    check_outputs(0, 0);
-    
-    repeat(10) @(posedge CLK);
-
-//*******************************************\\
-//Test Case 1: dhit
-//*******************************************\\
-    tb_test_case = "imemread";
-    tb_test_case_num = tb_test_case_num + 1;
-    display_test_banner();
-    @(posedge CLK)
-    ruif.dhit = 1;
-    @(posedge CLK)
-    ruif.dhit = 0;
-    check_outputs(0, 0);
-    
-    repeat(10) @(posedge CLK);
-
-//*******************************************\\
-//Test Case 1: Read case
-//*******************************************\\
-    tb_test_case = "imemread";
-    tb_test_case_num = tb_test_case_num + 1;
-    display_test_banner();
-    ruif.MemRead = 1;
-    @(posedge CLK)
-    ruif.ihit = 1;
-    @(posedge CLK)
-    ruif.ihit = 0;
-    check_outputs(1, 0);
-    repeat(2) @(posedge CLK);
-    ruif.dhit = 1;
-    @(posedge CLK);
-    ruif.dhit = 0;
-
-
-//*******************************************\\
-//Test Case 1: Write case
-//*******************************************\\
-    tb_test_case = "imemread";
-    tb_test_case_num = tb_test_case_num + 1;
-    display_test_banner();
-    ruif.MemWrite = 1;
-    @(posedge CLK)
-    ruif.ihit = 1;
-    @(posedge CLK)
-    ruif.ihit = 0;
-    check_outputs(0, 1);
-    repeat(2) @(posedge CLK);
-    ruif.dhit = 1;
-    @(posedge CLK); 
-    ruif.dhit = 0;
-    
-end
+    task Check_Outputs;
+    input logic expected_dmemREN;
+    input logic expected_dmemWEN;
+    begin
+        assert (request_unit_tb.ruif.dmemREN == expected_dmemREN) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", expected_dmemREN);
+            request_unit_tb.passed = request_unit_tb.passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display(" EXPECTED ");
+        end
+        assert (request_unit_tb.ruif.dmemWEN == expected_dmemWEN) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", expected_dmemWEN);
+            request_unit_tb.passed = request_unit_tb.passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display(" EXPECTED ");
+        end
+        request_unit_tb.total = request_unit_tb.total + 2;
+    end
+    endtask
 endprogram

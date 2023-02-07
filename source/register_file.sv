@@ -1,36 +1,30 @@
-
 `include "register_file_if.vh"
+`include "cpu_types_pkg.vh"
 
 module register_file (
-    //Write Inputs
-    input logic CLK, nRST,
-    register_file_if.rf rfif
-
+    input logic CLK,
+    input logic nRST,
+    register_file_if.rf rfif    
 );
 
-logic [31:0] Primary_Data [31:0]; //Initialize primary data
-logic [31:0] Primary_Data_nxt [31:0]; //Initialize primary data
+    import cpu_types_pkg::*;
 
-always_ff @(posedge CLK, negedge nRST) begin 
-    if (!nRST) begin
-        for (integer j = 0; j < 32; j = j+1) Primary_Data[j] <= 0; //Reset Data Buffer 
+    word_t registers [31:0];
+
+    always_ff @(posedge CLK, negedge nRST) begin: Reg_Write_Logic
+        // initialize regs to 0s
+        if (~nRST)
+            registers <= '{default:'0};
+        // only write data to a reg if its not reg0
+        else if (rfif.WEN)
+            if (rfif.wsel != 5'b0)
+                registers[rfif.wsel] <= rfif.wdat;
     end
-    else begin
-        Primary_Data <= Primary_Data_nxt; 
 
+    always_comb begin: Reg_Read_Logic
+        // read selected regs
+        rfif.rdat1 = registers[rfif.rsel1];
+        rfif.rdat2 = registers[rfif.rsel2];
     end
-end
-
-always_comb begin //Write Control
-    Primary_Data_nxt = Primary_Data;
-    if(rfif.WEN && rfif.wsel != 0) //Check that we are writing but not writing to reg.0
-        Primary_Data_nxt[rfif.wsel] = rfif.wdat;
-end
-
-always_comb begin //Read Control
-    rfif.rdat1 = Primary_Data[rfif.rsel1];  //Set the output of the read1
-    rfif.rdat2 = Primary_Data[rfif.rsel2];  //set output of read2
-end
-
 
 endmodule

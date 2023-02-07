@@ -1,67 +1,56 @@
-/*
-  Cameron McCutcheon
-
-  ALU interface
-*/
-
-`include "cpu_types_pkg.vh"
 `include "alu_if.vh"
-import cpu_types_pkg::*; //Why do we need this line?
 
-
-module alu(
+module alu (
     alu_if.alu aluif
 );
+    import cpu_types_pkg::*;
+    
+    always_comb begin: ALUOP_Logic
+        // Defaults
+        aluif.oport = '0;
+        aluif.overflow = 0;
 
-always_comb begin
-    //Set all to be default zero
-    aluif.neg = 0;
-    aluif.zero = 0;
-    aluif.over = 0;
-    aluif.port_o = 0;
-    case(aluif.alu_op)
-        ALU_SLL: begin //Logical Shift left by n digits (n = port_b)
-            aluif.port_o = aluif.port_b << aluif.port_a[4:0];
-        end
-        ALU_SRL: begin //Logical Shift right by n digits (n = port_b)
-            aluif.port_o = aluif.port_b >> aluif.port_a[4:0];
-        end
-        ALU_ADD: begin //ADD A and B
-            aluif.port_o = signed'(aluif.port_a) + signed'(aluif.port_b); //cast to signed may or may not work
-            if (aluif.port_o == 0) aluif.zero = 1;
-            if ((aluif.port_a[31] == aluif.port_b[31]) && (aluif.port_o[31] != aluif.port_a[31]))
-                aluif.over = 1;
-            if (aluif.port_o[31] == 1) aluif.neg = 1; //Maybe need edge case here when overflow is high
-        end
-        ALU_SUB: begin
-            aluif.port_o = signed'(aluif.port_a) - signed'(aluif.port_b);
-            if (aluif.port_o == 0) aluif.zero = 1;
-            if ((aluif.port_a[31] != aluif.port_b[31]) && aluif.port_o[31] != aluif.port_a[31])
-                aluif.over = 1;
-            if (aluif.port_o[31] == 1) aluif.neg = 1; //Maybe need edge case here when overflow is high
-        end
-        ALU_AND: begin
-            aluif.port_o = aluif.port_a & aluif.port_b;
-        end
-        ALU_OR: begin 
-            aluif.port_o = aluif.port_a | aluif.port_b;
-        end
-        ALU_XOR: begin 
-            aluif.port_o = aluif.port_a ^ aluif.port_b;
-        end
-        ALU_NOR: begin 
-            aluif.port_o = ~(aluif.port_a | aluif.port_b);
-        end
-        ALU_SLT: begin 
-            aluif.port_o = (signed'(aluif.port_a) < signed'(aluif.port_b)) ? 1 : 0;
-        end
-        ALU_SLTU: begin 
-            aluif.port_o = ((aluif.port_a) < (aluif.port_b)) ? 1 : 0;
-        end
+        // Execute ALUOP
+        case(aluif.ALUOP)
+            // Shift Left Logical
+            ALU_SLL: aluif.oport = aluif.portb << aluif.porta[4:0];
+            // Shift Right Logical
+            ALU_SRL: aluif.oport = aluif.portb >> aluif.porta[4:0];
+            // ADD Signed
+            ALU_ADD: begin
+                aluif.oport = $signed(aluif.porta) + $signed(aluif.portb);
+                aluif.overflow = 
+                    // adding two negative numbers and obtaining a positive result
+                    (aluif.oport[31] & ~aluif.porta[31] & ~aluif.portb[31]) | 
+                    // adding two positive numbers and obtaining a negative result
+                    (~aluif.oport[31] & aluif.porta[31] & aluif.portb[31]);
+            end
+            // SUB Signed
+            ALU_SUB: begin
+                aluif.oport = $signed(aluif.porta) - $signed(aluif.portb);
+                aluif.overflow = 
+                    // subtracting a negative number from a positive number and obtaining a negative result
+                    (~aluif.oport[31] & aluif.porta[31] & ~aluif.portb[31]) |
+                    // subtracting a positive number from a negative number and obtaining a positive result
+                    (aluif.oport[31] & ~aluif.porta[31] & aluif.portb[31]);
+            end
+            // AND
+            ALU_AND: aluif.oport = aluif.porta & aluif.portb;
+            // OR
+            ALU_OR: aluif.oport = aluif.porta | aluif.portb;
+            // XOR
+            ALU_XOR: aluif.oport = aluif.porta ^ aluif.portb;
+            // NOR
+            ALU_NOR: aluif.oport = ~(aluif.porta | aluif.portb);
+            // Set Less Than Signed
+            ALU_SLT: aluif.oport = $signed(aluif.porta) < $signed(aluif.portb);
+            // Set Less Than Unsinged
+            ALU_SLTU: aluif.oport = aluif.porta < aluif.portb;
+        endcase
 
-    endcase
-    if (aluif.port_o == 0) aluif.zero = 1;
-    if (aluif.port_o[31] == 1) aluif.neg = 1;
-end
+        // Assign Flags
+        aluif.negative = aluif.oport[31];
+        aluif.zero = (aluif.oport == '0);
+    end
 
-endmodule 
+endmodule

@@ -46,19 +46,12 @@ module system (input logic CLK, nRST, system_if.sys syif);
   cpu_ram_if                            prif ();
 
   // processor
-<<<<<<< HEAD
-  singlecycle #(.PC0('h0))              CPU (CPUCLK, nRST, halt, prif);
-
-  /* **** MAKE SURE to CHANGE the CLK to CPUCLK in pipeline and multicore modules **** */
-  //pipeline    #(.PC0('h0))              CPU (CLK, nRST, halt, prif);
-=======
   //singlecycle #(.PC0('h0))              CPU (CPUCLK, nRST, halt, prif);
   pipeline    #(.PC0('h0))              CPU (CPUCLK, nRST, halt, prif);
->>>>>>> 06d6d2ca6704ebf35a725d6ad479e4aa9723e632
   //multicore   #(.PC0('h0), .PC1('h200)) CPU (CLK, nRST, halt, prif);
 
   // memory
-  ram  #(.LAT(2))                       RAM (CLK, nRST, prif);
+  ram    #(.LAT(0))                               RAM (CLK, nRST, prif);
   //sdram                                 RAM (CLK, nRST, prif);
 
   // interface connections

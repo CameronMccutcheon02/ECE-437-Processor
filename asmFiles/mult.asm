@@ -1,26 +1,25 @@
 org 0x0000
 
-MAIN:
-ORI $29, $0, 0xFFFC
-ORI $5, $0, 10
-ORI $4, $0, 5
-PUSH $5 #push first op to stack
-PUSH $4 #push second op to stack
+Test:
+    # Initialize Stack Pointer
+    ori $29, $0, 0xFFFC
 
-MULT: 
-POP $4 #pull 2nd op from stack
-POP $5 #pull 1st of from stack
-OR $3, $0, $0 #clear temp reg
+    # Test case 3 * 3
+    ori $8, $0, 3 
+    push $8
+    ori $9, $0, 3
+    push $9
+    j Mult
 
-
-LOOP:
-BEQ $5, $0, LOOPEND
-ADD $3, $3, $4
-ADDI $5, $5, -1
-J LOOP
-
-LOOPEND: 
-PUSH $3
-ori $15, $0, 0x100
-sw $3, 0($15)
-HALT
+Mult:
+    ori $2, $0, 0 # result reg
+    pop $3 # loops this many times
+    pop $4 # adds this number to result each loop
+    Loop:
+        beq $3, $0, Exit
+        addi $3, $3, -1
+        add $2, $4, $2
+        j Loop
+    Exit:
+        push $2
+        halt

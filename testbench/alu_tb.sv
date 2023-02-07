@@ -1,312 +1,266 @@
-/*
-  Cameron McCutcheon
-
-  ALU test bench
-*/
-
-// mapped needs this
 `include "alu_if.vh"
+`include "cpu_types_pkg.vh"
+
 import cpu_types_pkg::*;
 
-// mapped timing needs this. 1ns is too fast
-`ifdef MAPPED
 `timescale 1 ns / 1 ns
-`endif
 
-`timescale 1 ns / 10 ps
+module alu_tb ();
 
-module alu_tb;
+    //parameter PERIOD = 10;
 
-  parameter PERIOD = 10;
+    int passed = 0;
+    int total = 0;
 
-  logic CLK = 0, nRST; //Technically don't need the clock, but we can use it to regularly space out stuff
+    alu_if aluif ();
 
-  // clock
-  always #(PERIOD/2) CLK++;
+    test PROG ();
 
-  // interface
-  alu_if aluif();
-  // test program
-  test PROG (.CLK(CLK), .nRST(nRST), .tbif(aluif));
-  // DUT
 `ifndef MAPPED
-  alu DUT(aluif);
+    alu DUT(aluif);
 `else
-  alu DUT(
-    .\aluif.alu_op (aluif.alu_op),
-    .\aluif.port_a (aluif.port_a),
-    .\aluif.port_b (aluif.port_b),
-    .\aluif.port_o (aluif.port_o),
-    .\aluif.neg (aluif.neg),
-    .\aluif.zero (aluif.zero),
-    .\aluif.over (aluif.over)
-  );
+    alu DUT(
+        .\aluif.ALUOP (aluif.ALUOP),
+        .\aluif.porta (aluif.porta),
+        .\aluif.portb (aluif.portb),
+        .\aluif.oport (aluif.oport),
+        .\aluif.negative (aluif.negative),
+        .\aluif.zero (aluif.zero),
+        .\aluif.overflow (aluif.overflow)        
+    );
 `endif
-
 
 endmodule
 
-
-program test (
-  input logic CLK,
-  
-  output logic nRST,
-  alu_if.tb tbif
-
-);
-
-parameter PERIOD = 10;
-string tb_test_case;
-integer tb_test_case_num;
-logic tb_mismatch, tb_check;
-
-task check_outputs;
-  input int expected_data, zero, neg, over, data_a, data_b;
+task Reset_Input;
 begin
-  #(0.1);
-  tb_mismatch = 0;
-  tb_check = 1;
-  assert(signed'(expected_data) == tbif.port_o & 
-          zero == tbif.zero &
-          neg == tbif.neg &
-          over == tbif.over) begin // Check passed
-    $display("State: O_Output nzv");
-    $write("%c[1;32m",27);
-    $write("PASSED ");
-    $write("%c[0m",27);
-    $display("%h %0d%0d%0d ------> %h = %h (op) %h", expected_data, neg, zero, over, expected_data, data_a, data_b);
+    alu_tb.aluif.ALUOP = ALU_SLL;
+    alu_tb.aluif.porta = '0;
+    alu_tb.aluif.portb = '0;
+end
+endtask
+
+task New_Test;
+    input integer test_num;
+    input string test_string;
+begin
     $display("");
-  end
-  else begin // Check failed
-    tb_mismatch = 1;
-    $display("State: O_Output nzv");
-    $write("%c[1;31m",27);
-    $write("FAILED ");
-    $write("%c[0m",27);
-    $display("%h %0d%0d%0d ------> %0d = %0d (op) %0d", expected_data, neg, zero, over, expected_data, data_a, data_b);
-    $display("ACTUAL:%h %0d%0d%0d ------> %h = %h (op) %h", tbif.port_o, tbif.neg, tbif.zero, tbif.over, tbif.port_o, tbif.port_a, tbif.port_b);
-    $display("");
-  end
-
-  #(0.1);
-  tb_check = 0;
+    $display("************************************************************************");
+    $display("Test Case %0d: %s", test_num, test_string);
+    $display("************************************************************************");
+    $display("       o        nzv");
 end
 endtask
 
-task send_command;
-  input aluop_t command;
-  input word_t data_a, data_b;
+task Check_Outputs;
+    input logic [31:0] expected_oport;
+    input logic expected_negative;
+    input logic expected_zero;
+    input logic expected_overflow;
 begin
-  @(posedge CLK); //Wait for a posedge of clock for sync purposes
-  tbif.alu_op = command;
-  tbif.port_a = data_a;
-  tbif.port_b = data_b;
-  @(negedge CLK);
-  find_outputs(.command(command), .data_a(data_a), .data_b(data_b));
-
+    assert (alu_tb.aluif.oport == expected_oport & 
+            alu_tb.aluif.negative == expected_negative &
+            alu_tb.aluif.overflow == expected_overflow &
+            alu_tb.aluif.zero == expected_zero) begin
+        $write("%c[1;32m",27);
+        $write("PASSED ");
+        $write("%c[0m",27);
+        $display("%h %0d%0d%0d", expected_oport, expected_negative, expected_zero, expected_overflow, );
+        alu_tb.passed = alu_tb.passed + 1;
+    end else begin
+        //$display("       o        nzv          o        nzv");
+        $write("%c[1;31m",27);
+        $write("FAILED ");
+        $write("%c[0m",27);
+        $display("%h %0d%0d%0d EXPECTED %h %0d%0d%0d", alu_tb.aluif.oport, alu_tb.aluif.negative, alu_tb.aluif.zero, alu_tb.aluif.overflow, expected_oport, expected_negative, expected_zero, expected_overflow);
+    end
+    alu_tb.total = alu_tb.total + 1;
 end
 endtask
 
-
-task find_outputs; 
-  input aluop_t command;
-  input word_t data_a, data_b;
-begin
-  word_t expected;
-  logic neg, zero, over;
-  neg = 0; zero = 0; over = 0;
-  case(command)
-        ALU_SLL: begin //Logical Shift left by n digits (n = port_b)
-            expected =  data_b << data_a[4:0];
+program test;
+    integer i;
+    initial begin
+        // ************************************************************************
+        // Test Case 1: Shift Left Logical
+        // ************************************************************************
+        New_Test(1, "Shift Left Logical");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_SLL;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.portb << alu_tb.aluif.porta[4:0]), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_SRL: begin //Logical Shift right by n digits (n = port_b)
-            expected = data_b >> data_a[4:0];
+
+        // ************************************************************************
+        // Test Case 2: Shift Right Logical
+        // ************************************************************************
+        New_Test(2, "Shift Right Logical");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_SRL;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.portb >> alu_tb.aluif.porta[4:0]), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_ADD: begin //ADD A and B
-            expected = data_a + data_b; 
-            if (expected == 0) zero = 1;
-            //$display("data a: %0d, data b: %0d, expected: %0d", data_a, data_b, expected);
-            if ((data_a[31] == data_b[31]) && expected[31] != data_a[31])
-                over = 1;
-            if (expected[31] == 1) neg = 1; //Maybe need edge case here when overflow is high
+        
+        // ************************************************************************
+        // Test Case 3: ADD Signed
+        // ************************************************************************
+        New_Test(3, "ADD Signed");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_ADD;
+        
+        // Normal ADD
+        alu_tb.aluif.porta = $urandom();
+        alu_tb.aluif.portb = $urandom();
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) + $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), ((alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31])));
+        
+        // Negative flag ADD
+        alu_tb.aluif.porta = 32'h90000000;
+        alu_tb.aluif.portb = 32'h00000001;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) + $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), ((alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31])));
+
+        // Zero flag ADD
+        alu_tb.aluif.porta = '0;
+        alu_tb.aluif.portb = '0;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) + $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), ((alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31])));
+
+        // Overflow flag ADD (negative)
+        alu_tb.aluif.porta = 32'h7FFFFFFF;
+        alu_tb.aluif.portb = 32'h7FFFFFFF;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) + $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), ((alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31])));
+
+        // Overflow flag ADD (positive)
+        alu_tb.aluif.porta = 32'h90000000;
+        alu_tb.aluif.portb = 32'h90000000;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) + $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), ((alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31])));
+
+        // ************************************************************************
+        // Test Case 4: SUB Signed
+        // ************************************************************************
+        New_Test(4, "SUB Signal");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_SUB;
+        
+        // Normal SUB
+        alu_tb.aluif.porta = $urandom();
+        alu_tb.aluif.portb = $urandom();
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) - $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31]));
+
+        // Negative flag SUB
+        alu_tb.aluif.porta = 32'hF0000000;
+        alu_tb.aluif.portb = 32'h00000001;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) - $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31]));
+
+        // Zero flag SUB
+        alu_tb.aluif.porta = '0;
+        alu_tb.aluif.portb = '0;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) - $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31]));
+
+        // Overflow flag SUB (negative)
+        alu_tb.aluif.porta = 32'h7FFFFFFF;
+        alu_tb.aluif.portb = 32'hFFFFFFFF;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) - $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31]));
+
+
+        // Overflow flag SUB (positive)
+        alu_tb.aluif.porta = 32'h80000000;
+        alu_tb.aluif.portb = 32'h00000001;
+        #(5);
+        Check_Outputs(($signed(alu_tb.aluif.porta) - $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), (~alu_tb.aluif.oport[31] & alu_tb.aluif.porta[31] & ~alu_tb.aluif.portb[31]) | (alu_tb.aluif.oport[31] & ~alu_tb.aluif.porta[31] & alu_tb.aluif.portb[31]));
+
+        // ************************************************************************
+        // Test Case 5: AND
+        // ************************************************************************
+        New_Test(5, "AND");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_AND;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.porta & alu_tb.aluif.portb), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_SUB: begin
-            expected = data_a - data_b;
-            if (expected == 0) zero = 1;
-            if ((data_a[31] != data_b[31]) && expected[31] != data_a[31])
-                over = 1;
-            if (expected[31] == 1) neg = 1; //Maybe need edge case here when overflow is high
+
+        // ************************************************************************
+        // Test Case 6: OR
+        // ************************************************************************
+        New_Test(6, "OR");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_OR;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.porta | alu_tb.aluif.portb), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_AND: begin
-            expected = data_a & data_b;
+        
+        // ************************************************************************
+        // Test Case 7: XOR
+        // ************************************************************************
+        New_Test(7, "XOR");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_XOR;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.porta ^ alu_tb.aluif.portb), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_OR: begin 
-            expected = data_a | data_b;
+        
+        // ************************************************************************
+        // Test Case 8: NOR
+        // ************************************************************************
+        New_Test(8, "NOR");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_NOR;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs(~(alu_tb.aluif.porta | alu_tb.aluif.portb), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_XOR: begin 
-            expected = data_a ^ data_b;
+
+        // ************************************************************************
+        // Test Case 9: Set Less than Signed
+        // ************************************************************************
+        New_Test(9, "Set Less than Signed");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_SLT;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs(($signed(alu_tb.aluif.porta) < $signed(alu_tb.aluif.portb)), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_NOR: begin 
-            expected = ~(data_a | data_b);
+
+        // ************************************************************************
+        // Test Case 10: Set Less than Unsigned
+        // ************************************************************************
+        New_Test(10, "Set Less than Unsigned");
+        Reset_Input();
+        alu_tb.aluif.ALUOP = ALU_SLTU;
+        for (i = 0; i < 5; i++) begin
+            alu_tb.aluif.porta = $urandom();
+            alu_tb.aluif.portb = $urandom();
+            #(5);
+            Check_Outputs((alu_tb.aluif.porta < alu_tb.aluif.portb), alu_tb.aluif.oport[31], (alu_tb.aluif.oport == '0), 1'b0);
         end
-        ALU_SLT: begin 
-            expected = signed'(data_a) < signed'(data_b) ? 1 : 0;
-        end
-        ALU_SLTU: begin 
-            expected = (unsigned'(data_a) < unsigned'(data_b)) ? 1 : 0;
-        end
-  endcase
-
-  check_outputs(expected, zero, neg, over, data_a, data_b);
-end
-endtask
-
-task display_test_banner; 
-begin
-  $display("//***********************************************************************\\");
-  $display("Test case %d: ", tb_test_case_num, tb_test_case);
-  $display("//***********************************************************************\\");
-end
-endtask
-
-//***********************************************************************\\
-//Test 1- Reset Test
-//***********************************************************************\\
-
-initial begin
-  aluop_t command;
-  tb_test_case = "Reset Case";
-  tb_test_case_num = 1;
-
-//***********************************************************************\\
-//Test 2 Logical shift Left
-//***********************************************************************\\
-  tb_test_case = "Shift Left";
-  tb_test_case_num = tb_test_case_num+ 1;
-  display_test_banner();
-  command = ALU_SLL;
-  send_command(command, 16, 1);
-  send_command(command, 1, 2);
-  send_command(command, 4, 2);
-
-
-//***********************************************************************\\
-//Test 3 Logical shift Right
-//***********************************************************************\\
-  tb_test_case = "Shift Right";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_SRL;
-  send_command(command, 4, 64);
-  send_command(command, 4, 64);
-
-//***********************************************************************\\
-//Test 4 ADD
-//***********************************************************************\\
-  tb_test_case = "ADD";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_ADD;
-  send_command(command, 16, 1);
-  send_command(command, 2147483647, 1); //Overflow test
-  send_command(command, -16, 2); //Negative Test
-  send_command(command, 0, 0); //Zero Test
-
-
-//***********************************************************************\\
-//Test 5 SUB
-//***********************************************************************\\
-  tb_test_case = "SUB";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_SUB; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 2147483647, 1); //Large number test
-  send_command(command, -1, 1); //All negative test
-  send_command(command, 1, 1); //Zero Test
-  send_command(command, -2147483648, 1); //Overflow type 1
-  send_command(command, 2147483647, -1); //Overflow type 2
-  send_command(command, -3, -4);
-
-//***********************************************************************\\
-//Test 6 AND
-//***********************************************************************\\
-  tb_test_case = "AND";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_AND; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-
-
-//***********************************************************************\\
-//Test 7 OR
-//***********************************************************************\\
-  tb_test_case = "OR";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_OR; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-
-
-//***********************************************************************\\
-//Test 8 XOR
-//***********************************************************************\\
-  tb_test_case = "XOR";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_XOR; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-
-
-//***********************************************************************\\
-//Test 9 NOR
-//***********************************************************************\\
-  tb_test_case = "NOR";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_NOR; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-
-//***********************************************************************\\
-//Test 10 SLT
-//***********************************************************************\\
-  tb_test_case = "SLT";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_SLT; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-  send_command(command, -5, -6); //Standard Test
-  send_command(command, -6, -5); //Standard Test
-  send_command(command, 0, -5); //Standard Test
-
-
-//***********************************************************************\\
-//Test 11 SLTU
-//***********************************************************************\\
-  tb_test_case = "SLTU";
-  tb_test_case_num = tb_test_case_num+ 1;
-
-  display_test_banner();
-  command = ALU_SLTU; 
-  send_command(command, 16, 1); //Standard Test
-  send_command(command, 16, 17); //Standard Test
-  send_command(command, -5, -6); //Standard Test
-  send_command(command, 0, -5); //Standard Test
-  
-  
-
-end
+        
+        $display("Passed %0d / %0d", alu_tb.passed, alu_tb.total);
+        $finish;
+    end
 endprogram
