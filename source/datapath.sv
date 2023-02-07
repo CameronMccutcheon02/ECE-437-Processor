@@ -13,6 +13,7 @@
 `include "register_file_if.vh"
 `include "request_unit_if.vh"
 `include "program_counter_if.vh"
+`include "pipeline_if.vh"
 
 // alu op, mips op, and instruction type
 `include "cpu_types_pkg.vh"

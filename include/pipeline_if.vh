@@ -11,7 +11,7 @@
 
 
 interface pipeline_if #(parameter int NUM_INPUTS=1);
-    logic [][]data
+    logic [][]data;
     logic [NUM_INPUTS-1:0] in_data[]; //each array will be some amount wide, but there will be n many of them
     logic [NUM_INPUTS-1:0] out_data[]; //each array will be some amount wide, but there will be n many of them
 
