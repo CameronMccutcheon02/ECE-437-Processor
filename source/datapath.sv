@@ -12,6 +12,7 @@
   `include "request_unit_if.vh"
   `include "alu_if.vh"
   `include "register_file_if.vh"
+  `include "pipeline_if.vh"
   import cpu_types_pkg::*;
 
   // alu op, mips op, and instruction type
