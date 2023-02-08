@@ -25,11 +25,11 @@
     // import types
     import cpu_types_pkg::*;
 
-    //Interface declarations
-    control_unit_if cuif();
-    register_file_if rfif();
-    alu_if aluif(); 
-    request_unit_if ruif();
+    // //Interface declarations
+    // control_unit_if cuif();
+    // register_file_if rfif();
+    // alu_if aluif(); 
+    // request_unit_if ruif();
 
 
 
@@ -94,7 +94,7 @@
   always_comb begin: Datapath_Signals
     npc = pcif.PC + 32'd4;
     ZeroExtImm = {16'h0000, imm};
-    SignExtImm = {{16{imm[15]}}, imm}
+    SignExtImm = {{16{imm[15]}}, imm};
     // if (imm[15] == 1'b1)
     //   SignExtImm = {16'hffff, imm};
     // else
