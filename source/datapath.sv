@@ -98,26 +98,17 @@
   word_t JumpAddr;
   word_t JRAddr;
   word_t BranchAddr;
-  word_t FinalImm;
 
   always_comb begin: Datapath_Signals
     npc = pcif.PC + 32'd4;
     ZeroExtImm = {16'h0000, imm};
     SignExtImm = {{16{imm[15]}}, imm};
-    // if (imm[15] == 1'b1)
-    //   SignExtImm = {16'hffff, imm};
-    // else
-    //   SignExtImm = {16'h0000, imm};
     JumpAddr = {npc[31:28], Instruction[25:0], 2'b00};
     JRAddr = rfif.rdat1;
     if ((cuif.BEQ & aluif.zero) | (cuif.BNE & ~aluif.zero))
       BranchAddr = (npc + {ZeroExtImm[29:0], 2'b00});
     else
       BranchAddr = npc;
-    if (cuif.ExtOP)
-      FinalImm = SignExtImm;
-    else
-      FinalImm = ZeroExtImm;
   end 
   //*******************************************\\
 //
