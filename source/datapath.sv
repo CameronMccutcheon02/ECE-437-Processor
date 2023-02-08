@@ -67,11 +67,11 @@
   //*******************************************\\
 //
 
-initial begin
-  stages.in_data[0] = 0;
-  //stages.in_data[6] = 32'd69;
+// initial begin
+//   stages.in_data[0] = 0;
+//   //stages.in_data[6] = 32'd69;
 
-end
+// end
 
 
 //Instruction routing - will need some of these for the pipelining forwarding unit
