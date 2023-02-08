@@ -45,6 +45,9 @@
   request_unit_if ruif();
   program_counter_if pcif();
 
+  pipeline_stage stages();
+
+
   // DUT
   alu ALU(aluif);
   control_unit CU(cuif);
@@ -63,6 +66,12 @@
   funct_t func;
   //*******************************************\\
 //
+
+initial begin
+  stages.in_data[0] = 0;
+  //stages.in_data[6] = 32'd69;
+
+end
 
 
 //Instruction routing - will need some of these for the pipelining forwarding unit
