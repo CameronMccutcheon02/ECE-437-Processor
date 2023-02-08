@@ -45,7 +45,10 @@
   request_unit_if ruif();
   program_counter_if pcif();
 
-  pipeline_stage stages();
+  pipeline_stage ifid();
+  pipeline_stage idex();
+  pipeline_stage exmem();
+  pipeline_stage memwb();
 
 
   // DUT
@@ -67,17 +70,10 @@
   //*******************************************\\
 //
 
-// initial begin
-//   stages.in_data[0] = 0;
-//   //stages.in_data[6] = 32'd69;
-
-// end
-
-
 //Instruction routing - will need some of these for the pipelining forwarding unit
   //*******************************************\\
   always_comb begin: Instruction_Signals
-    Instruction = dpif.imemload;
+    Instruction = ifid.imemload;
     op = opcode_t'(Instruction[31:26]);
     rs = Instruction[25:21];
     rt = Instruction[20:16];
@@ -145,23 +141,23 @@
 //Register File
   //*******************************************\\
   always_comb begin: Register_File_Logic
-    rfif.WEN = cuif.RegWr & (dpif.ihit | dpif.dhit);
+    rfif.WEN = memwb.RegWr;
 
-    if (cuif.jal)
+    if (memwb.jal)
       rfif.wsel = 5'd31;
-    else if (cuif.RegDst)
-      rfif.wsel = rd;
+    else if (memwb.RegDst)
+      rfif.wsel = memwb.rd;
     else
-      rfif.wsel = rt;
+      rfif.wsel = memwb.rt;
     
     rfif.rsel1 = rs;
     rfif.rsel2 = rt;
     
-    case (cuif.MemtoReg)
-      2'd0: rfif.wdat = aluif.oport;
-      2'd1: rfif.wdat = npc;
-      2'd2: rfif.wdat = dpif.dmemload;
-      2'd3: rfif.wdat = {imm, 16'b0};
+    case (memwb.MemtoReg)
+      2'd0: rfif.wdat = memwb.port_o;
+      2'd1: rfif.wdat = memwb.NPC;
+      2'd2: rfif.wdat = memwb.dmemload;
+      2'd3: rfif.wdat = memwb.Imm_Ext;
     endcase
   end
   //*******************************************\\
