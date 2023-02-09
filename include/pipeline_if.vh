@@ -19,8 +19,6 @@ logic stall, flush;
 
 //Control Signals
 aluop_t ALUctr_in, ALUctr;
-logic jal_in, jal;
-logic RegDst_in, RegDst;
 logic RegWr_in, RegWr;
 logic ALUSrc_in, ALUSrc;
 logic BEQ_in, BEQ;
@@ -31,8 +29,7 @@ logic dWEN_in, dWEN;
 logic [1:0] MemtoReg_in, MemtoReg;
 logic [1:0] JumpSel_in, JumpSel;
 
-logic [4:0] Rd_in, Rd;
-logic [4:0] Rt_in, Rt;
+logic [4:0] RW_in, RW;
 
 //Word datas
 word_t imemload_in, port_a_in, port_b_in, Imm_Ext_in, dmemstore_in, port_o_in, dmemload_in;

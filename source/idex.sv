@@ -30,16 +30,13 @@ module idex(
       deif.dWEN <= '0;
 
       //WB Layer
-      deif.jal <= '0;
-      deif.RegDst <= '0;
       deif.RegWr <= '0;
       deif.MemtoReg <= '0;
       deif.halt <= '0;
 
       //Data Signals
       deif.NPC <= '0;
-      deif.Rd <= '0;
-      deif.Rt <= '0;
+      deif.RW <= '0;
       deif.port_a <= '0;
       deif.port_b <= '0;
       deif.Imm_Ext <= '0;
@@ -57,16 +54,13 @@ module idex(
       deif.dWEN <= deif.dWEN_in;
 
       //WB Layer
-      deif.jal <= deif.jal_in;
-      deif.RegDst <= deif.RegDst_in;
       deif.RegWr <= deif.RegWr_in;
       deif.MemtoReg <= deif.MemtoReg_in;
       deif.halt <= deif.halt_in;
 
       //Data Signals
       deif.NPC <= deif.NPC_in;
-      deif.Rd <= deif.Rd_in;
-      deif.Rt <= deif.Rt_in;
+      deif.RW <= deif.RW_in;
       deif.port_a <= deif.port_a_in;
       deif.port_b <= deif.port_b_in;
       deif.Imm_Ext <= deif.Imm_Ext_in;
@@ -84,16 +78,13 @@ module idex(
       deif.dWEN <= deif.dWEN;
 
       //WB Layer
-      deif.jal <= deif.jal;
-      deif.RegDst <= deif.RegDst;
       deif.RegWr <= deif.RegWr;
       deif.MemtoReg <= deif.MemtoReg;
       deif.halt <= deif.halt;
 
       //Data Signals
       deif.NPC <= deif.NPC;
-      deif.Rd <= deif.Rd;
-      deif.Rt <= deif.Rt;
+      deif.RW <= deif.RW;
       deif.port_a <= deif.port_a;
       deif.port_b <= deif.port_b;
       deif.Imm_Ext <= deif.Imm_Ext;
@@ -112,15 +103,12 @@ function void transfer(); //on clock edge, we can call the store method to grab 
         deif.dWEN = deif.dWEN_in;
 
         //WB Layer
-        deif.jal = deif.jal_in;
-        deif.RegDst = deif.RegDst_in;
         deif.RegWr = deif.RegWr_in;
         deif.MemtoReg = deif.MemtoReg_in;
         deif.halt = deif.halt_in;
 
         //Data Signals
-        deif.Rd = deif.Rd_in;
-        deif.Rt = deif.Rt_in;
+        deif.RW = deif.RW_in;
         deif.NPC = deif.NPC_in;
         deif.port_a = deif.port_a_in;
         deif.port_b = deif.port_b_in;
@@ -146,8 +134,7 @@ function void clear_to_nop();
         deif.halt = 0;
 
         //Data Signals
-        deif.Rd = 0;
-        deif.Rt = 0;
+        deif.RW = 0;
         deif.NPC = 0;
         deif.port_a = 0;
         deif.port_b = 0;

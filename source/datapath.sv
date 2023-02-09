@@ -154,10 +154,7 @@ end
   always_comb begin: Register_File_Logic
     rfif.WEN = mwif.RegWr;
 
-    if (mwif.jal)
-      rfif.wsel = 5'd31;
-    else
-      rfif.wsel = mwif.Rd;
+    rfif.wsel = mwif.RW;
     
     rfif.rsel1 = rs;
     rfif.rsel2 = rt;
@@ -238,8 +235,7 @@ end
     deif.dWEN_in = cuif.dWEN;
 
     // Writeback Signals
-    deif.jal_in = cuif.jal;
-    deif.RegDst_in = cuif.RegDst;
+    deif.RW_in = (cuif.jal) ? 5'd31 : (cuif.RegDst) ? rd : rt;
     deif.RegWr_in = cuif.RegWr;
     deif.MemtoReg_in = cuif.MemtoReg;
     deif.halt_in = cuif.halt;
@@ -248,11 +244,6 @@ end
     deif.NPC_in = fdif.NPC;
 
     // Data Signals
-    if (cuif.RegDst)
-      deif.Rd_in = rd;
-    else
-      deif.Rd_in = rt;
-    deif.Rt_in = rs;
     deif.port_a_in = rfif.rdat1;
     deif.port_b_in = rfif.rdat2;
     deif.Imm_Ext_in = Imm_Ext;
@@ -270,8 +261,6 @@ end
 
     // Writeback Signals (Passthrough)
     emif.NPC_in = deif.NPC;
-    emif.jal_in = deif.jal;
-    emif.RegDst_in = deif.RegDst;
     emif.RegWr_in = deif.RegWr;
     emif.MemtoReg_in = deif.MemtoReg;
     emif.halt_in = deif.halt;
@@ -281,8 +270,7 @@ end
     emif.LUI_in = {deif.Imm_Ext, 16'b0};
 
     // Data Signals (Passthrough)
-    emif.Rd_in = deif.Rd;
-    emif.Rt_in = deif.Rt;
+    emif.RW_in = deif.RW;
     emif.dmemstore_in = deif.port_b;
   end
 
@@ -294,15 +282,12 @@ end
 
     // Writeback Signals (Passthrough)
     mwif.NPC_in = emif.NPC;
-    mwif.jal_in = emif.jal;
-    mwif.RegDst_in = emif.RegDst;
     mwif.RegWr_in = emif.RegWr;
     mwif.MemtoReg_in = emif.MemtoReg;
     mwif.halt_in = emif.halt;
 
     // Data Signals (Passthrough)
-    mwif.Rd_in = emif.Rd;
-    mwif.Rt_in = emif.Rt;
+    mwif.RW_in = emif.RW;
     mwif.port_o_in = emif.port_o;
     mwif.LUI_in = emif.LUI;
 
