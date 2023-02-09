@@ -5,3 +5,16 @@ processing file asmFiles/test.bne_nt.asm (3 of 5)
 processing file asmFiles/test.beq_nt.asm (1 of 5)
 processing file asmFiles/test.beq_t.asm (2 of 5)
 processing file asmFiles/test.bne_nt.asm (3 of 5)
+processing file asmFiles/test.bne_nt.asm (1 of 2)
+processing file asmFiles/test.bne_t.asm (2 of 2)
+--- memsim.hex	2023-02-09 14:07:07.179288502 -0500
++++ memcpu.hex	2023-02-09 14:07:07.107285790 -0500
+@@ -7,5 +7,5 @@
+ :040006003408ABCD42
+ :04000700AC0800F051
+ :04000800FFFFFFFFF8
+-:04003C000000ABCD48
++:04003C00000012347A
+ :00000001FF
+processing file asmFiles/test.bne_nt.asm (1 of 2)
+processing file asmFiles/test.bne_t.asm (2 of 2)
