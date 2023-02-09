@@ -89,23 +89,29 @@
 
         modport IFID (
                 input   imemload_in,
-                output imemloadSign_ext
+                output imemload;
 
         );
 
         modport IDEX (
+                //Execute Layer
                 input ALUctr_in;                        output ALUctr;
-                input jal_in;                           output jal;
-                input RegDst_in;                        output RegDst;
-                input RegWr_in;                         output RegWr;
                 input ALUSrc_in;                        output ALUSrc;
                 input BEQ_in;                           output BEQ;
                 input BNE_in;                           output BNE;
-                input halt_in;                          output halt;
+
+                //Mem Layer
                 input dREN_in;                          output dREN;
                 input dWEN_in;                          output dWEN;
-                input MemtoReg_in;                      output MemtoReg;
 
+                //WB Layer
+                input jal_in;                           output jal;
+                input RegDst_in;                        output RegDst;
+                input RegWr_in;                         output RegWr;
+                input MemtoReg_in;                      output MemtoReg;
+                input halt_in;                          output halt;
+                
+                //data signals
                 input Rd_in;                            output Rd;
                 input Rs_in;                            output Rs;
                 input NPC_in;                           output NPC;
@@ -117,14 +123,18 @@
         );
 
         modport EXMEM (
+                //Mem Layer
+                input dREN_in;                          output dREN;
+                input dWEN_in;                          output dWEN;
+
+                //WB Layer
                 input jal_in;                           output jal;
                 input RegDst_in;                        output RegDst;
                 input RegWr_in;                         output RegWr;
-                input halt_in;                          output halt;
-                input dREN_in;                          output dREN;
-                input dWEN_in;                          output dWEN;
                 input MemtoReg_in;                      output MemtoReg;
+                input halt_in;                          output halt;
 
+                //data signals
                 input NPC_in;                           output NPC;
                 input Rd_in;                            output Rd;
                 input Rs_in;                            output Rs;
@@ -135,13 +145,15 @@
 
 
         modport MEMWB (
+
+                //WB Layer
                 input jal_in;                           output jal;
                 input RegDst_in;                        output RegDst;
                 input RegWr_in;                         output RegWr;
-                input ExtOP_in;                         output ExtOP;
-                input halt_in;                          output halt;
                 input MemtoReg_in;                      output MemtoReg;
+                input halt_in;                          output halt;
 
+                //data signals
                 input NPC_in;                           output NPC;
                 input Rd_in;                            output Rd;
                 input Rs_in;                            output Rs;
