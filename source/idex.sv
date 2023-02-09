@@ -5,67 +5,153 @@
   
 */
 //`include "cpu_types_pkg.vh"
-`include "pipeline_latch.vh"
+`include "pipeline_if.vh"
+`include "cpu_types_pkg.vh"
 
 module idex(
-  input logic CLK, nRST
-  pipeline_if.IDEX plif
+  input logic CLK, nRST,
+  pipeline_if.IDEX deif
 );
+
+  import cpu_types_pkg::*;
+
+  always_ff @(posedge CLK, negedge nRST) begin: Reg_Logic
+    if (~nRST | (deif.flush & deif.ihit)) begin
+      //Execute Layer
+      deif.ALUctr <= ALU_ADD;
+      deif.ALUSrc <= '0;
+      deif.BEQ <= '0;
+      deif.BNE <= '0;
+      deif.JumpSel <= '0;
+      deif.JumpAddr <= '0;
+
+      //Mem Layer
+      deif.dREN <= '0;
+      deif.dWEN <= '0;
+
+      //WB Layer
+      deif.jal <= '0;
+      deif.RegDst <= '0;
+      deif.RegWr <= '0;
+      deif.MemtoReg <= '0;
+      deif.halt <= '0;
+
+      //Data Signals
+      deif.NPC <= '0;
+      deif.Rd <= '0;
+      deif.Rt <= '0;
+      deif.port_a <= '0;
+      deif.port_b <= '0;
+      deif.Imm_Ext <= '0;
+    end else if (~deif.stall & deif.ihit) begin
+      //Execute Layer
+      deif.ALUctr <= deif.ALUctr_in;
+      deif.ALUSrc <= deif.ALUSrc_in;
+      deif.BEQ <= deif.BEQ_in;
+      deif.BNE <= deif.BNE_in;
+      deif.JumpSel <= deif.JumpSel_in;
+      deif.JumpAddr <= deif.JumpAddr_in;
+
+      //Mem Layer
+      deif.dREN <= deif.dREN_in;
+      deif.dWEN <= deif.dWEN_in;
+
+      //WB Layer
+      deif.jal <= deif.jal_in;
+      deif.RegDst <= deif.RegDst_in;
+      deif.RegWr <= deif.RegWr_in;
+      deif.MemtoReg <= deif.MemtoReg_in;
+      deif.halt <= deif.halt_in;
+
+      //Data Signals
+      deif.NPC <= deif.NPC_in;
+      deif.Rd <= deif.Rd_in;
+      deif.Rt <= deif.Rt_in;
+      deif.port_a <= deif.port_a_in;
+      deif.port_b <= deif.port_b_in;
+      deif.Imm_Ext <= deif.Imm_Ext_in;
+    end else begin
+      //Execute Layer
+      deif.ALUctr <= deif.ALUctr;
+      deif.ALUSrc <= deif.ALUSrc;
+      deif.BEQ <= deif.BEQ;
+      deif.BNE <= deif.BNE;
+      deif.JumpSel <= deif.JumpSel;
+      deif.JumpAddr <= deif.JumpAddr;
+
+      //Mem Layer
+      deif.dREN <= deif.dREN;
+      deif.dWEN <= deif.dWEN;
+
+      //WB Layer
+      deif.jal <= deif.jal;
+      deif.RegDst <= deif.RegDst;
+      deif.RegWr <= deif.RegWr;
+      deif.MemtoReg <= deif.MemtoReg;
+      deif.halt <= deif.halt;
+
+      //Data Signals
+      deif.NPC <= deif.NPC;
+      deif.Rd <= deif.Rd;
+      deif.Rt <= deif.Rt;
+      deif.port_a <= deif.port_a;
+      deif.port_b <= deif.port_b;
+      deif.Imm_Ext <= deif.Imm_Ext;
+    end
+  end
 
 function void transfer(); //on clock edge, we can call the store method to grab these output
         //Execute Layer
-        plif.ALUctr = plif.ALUctr_in;
-        plif.ALUSrc = plif.ALUSrc_in;
-        plif.BEQ = plif.BEQ_in;
-        plif.BNE = plif.BNE_in;
+        deif.ALUctr = deif.ALUctr_in;
+        deif.ALUSrc = deif.ALUSrc_in;
+        deif.BEQ = deif.BEQ_in;
+        deif.BNE = deif.BNE_in;
 
         //Mem Layer
-        plif.dREN = plif.dREN_in;
-        plif.dWEN = plif.dWEN_in;
+        deif.dREN = deif.dREN_in;
+        deif.dWEN = deif.dWEN_in;
 
         //WB Layer
-        plif.jal = plif.jal_in;
-        plif.RegDst = plif.RegDst_in;
-        plif.RegWr = plif.RegWr_in;
-        plif.MemtoReg = plif.MemtoReg_in;
-        plif.halt = plif.halt_in;
+        deif.jal = deif.jal_in;
+        deif.RegDst = deif.RegDst_in;
+        deif.RegWr = deif.RegWr_in;
+        deif.MemtoReg = deif.MemtoReg_in;
+        deif.halt = deif.halt_in;
 
         //Data Signals
-        plif.Rd = plif.Rd_in;
-        plif.Rs = plif.Rs_in;
-        plif.NPC = plif.NPC_in;
-        plif.port_a = plif.port_a_in;
-        plif.port_b = plif.port_b_in;
-        plif.Imm_Ext = plif.Imm_Ext_in;
-        plif.dmemstore = plif.dmemstore_in;
+        deif.Rd = deif.Rd_in;
+        deif.Rt = deif.Rt_in;
+        deif.NPC = deif.NPC_in;
+        deif.port_a = deif.port_a_in;
+        deif.port_b = deif.port_b_in;
+        deif.Imm_Ext = deif.Imm_Ext_in;
 endfunction
 
 function void clear_to_nop();
         //Execute Layer
-        plif.ALUctr = 0;
-        plif.ALUSrc = 0;
-        plif.BEQ = 0;
-        plif.BNE = 0;
+        //deif.ALUctr = 0;
+        deif.ALUSrc = 0;
+        deif.BEQ = 0;
+        deif.BNE = 0;
 
         //Mem Layer
-        plif.dREN = 0;
-        plif.dWEN = 0;
+        deif.dREN = 0;
+        deif.dWEN = 0;
 
         //WB Layer
-        plif.jal = 0;
-        plif.RegDst = 0;
-        plif.RegWr = 0;
-        plif.MemtoReg = 0;
-        plif.halt = 0;
+        deif.jal = 0;
+        deif.RegDst = 0;
+        deif.RegWr = 0;
+        deif.MemtoReg = 0;
+        deif.halt = 0;
 
         //Data Signals
-        plif.Rd = 0;
-        plif.Rs = 0;
-        plif.NPC = 0;
-        plif.port_a = 0;
-        plif.port_b = 0;
-        plif.Imm_Ext = 0;
-        plif.dmemstore = 0;
+        deif.Rd = 0;
+        deif.Rt = 0;
+        deif.NPC = 0;
+        deif.port_a = 0;
+        deif.port_b = 0;
+        deif.Imm_Ext = 0;
 endfunction
 
 endmodule

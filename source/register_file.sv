@@ -11,7 +11,7 @@ module register_file (
 
     word_t registers [31:0];
 
-    always_ff @(posedge CLK, negedge nRST) begin: Reg_Write_Logic
+    always_ff @(negedge CLK, negedge nRST) begin: Reg_Write_Logic
         // initialize regs to 0s
         if (~nRST)
             registers <= '{default:'0};

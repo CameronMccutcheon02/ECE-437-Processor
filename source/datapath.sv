@@ -29,7 +29,6 @@
     // control_unit_if cuif();
     // register_file_if rfif();
     // alu_if aluif(); 
-    // request_unit_if ruif();
 
 
 
@@ -42,21 +41,24 @@
   alu_if aluif();
   control_unit_if cuif();
   register_file_if rfif();
-  request_unit_if ruif();
   program_counter_if pcif();
 
-  pipeline_stage ifid();
-  pipeline_stage idex();
-  pipeline_stage exmem();
-  pipeline_stage memwb();
-
+  pipeline_if fdif();
+  pipeline_if deif();
+  pipeline_if emif();
+  pipeline_if mwif();
 
   // DUT
   alu ALU(aluif);
   control_unit CU(cuif);
   register_file RF(CLK, nRST, rfif);
-  request_unit RU(CLK, nRST, ruif);
   program_counter PC(CLK, nRST, pcif);
+
+  ifid FD(CLK, nRST, fdif);
+  idex DE(CLK, nRST, deif);
+  exmem EM(CLK, nRST, emif);
+  memwb MW(CLK, nRST, mwif);
+
 
   // Instruction Signals
   word_t Instruction;
@@ -64,67 +66,77 @@
   regbits_t rs;
   regbits_t rt;
   regbits_t rd;
-  logic [4:0] shamt;
   logic [15:0] imm;
   funct_t func;
   //*******************************************\\
 //
 
+// for testing
+always_comb begin: init
+  fdif.stall = 1'b0;
+  fdif.flush = 1'b0;
+  deif.stall = 1'b0;
+  deif.flush = 1'b0;
+  emif.stall = 1'b0;
+  emif.flush = 1'b0;
+  mwif.stall = 1'b0;
+  mwif.flush = 1'b0;
+end
+
 //Instruction routing - will need some of these for the pipelining forwarding unit
   //*******************************************\\
   always_comb begin: Instruction_Signals
-    Instruction = ifid.imemload;
+    Instruction = fdif.imemload;
     op = opcode_t'(Instruction[31:26]);
     rs = Instruction[25:21];
     rt = Instruction[20:16];
     rd = Instruction[15:11];
     imm = Instruction[15:0];
-    shamt = Instruction[10:6];
     func = funct_t'(Instruction[5:0]);
   end
   //*******************************************\\
 //
-
-  
+ 
 //Datapath
   //*******************************************\\
   word_t npc;
   word_t ZeroExtImm;
   word_t SignExtImm;
-  word_t JumpAddr;
-  word_t JRAddr;
+  word_t Imm_Ext;
   word_t BranchAddr;
 
-  always_comb begin: Datapath_Signals
+  always_comb begin: Decode_Signals
     npc = pcif.PC + 32'd4;
     ZeroExtImm = {16'h0000, imm};
     SignExtImm = {{16{imm[15]}}, imm};
-    JumpAddr = {npc[31:28], Instruction[25:0], 2'b00};
-    JRAddr = rfif.rdat1;
-    if ((cuif.BEQ & aluif.zero) | (cuif.BNE & ~aluif.zero))
-      BranchAddr = (npc + {ZeroExtImm[29:0], 2'b00});
+    
+    if (cuif.ExtOP)
+      Imm_Ext = SignExtImm;
+    else
+      Imm_Ext = ZeroExtImm;
+  end 
+
+  always_comb begin: Execute_Signals
+    if ((deif.BEQ & aluif.zero) | (deif.BNE & ~aluif.zero))
+      BranchAddr = (npc + {deif.Imm_Ext[29:0], 2'b00});
     else
       BranchAddr = npc;
-  end 
-  //*******************************************\\
-//
-
-
-//ALU
-  //*******************************************\\
-  always_comb begin: ALU_Logic
-    aluif.ALUOP = cuif.ALUctr;
-    aluif.porta = rfif.rdat1;
-    if (~cuif.ALUSrc)
-      aluif.portb = rfif.rdat2; //Cam's notes- we can definitely do the routing of the sign extender a little better- take a look at it when we get to the pipelining
-    else if (cuif.ExtOP)
-      aluif.portb = SignExtImm;
-    else
-      aluif.portb = ZeroExtImm;
   end
   //*******************************************\\
 //
 
+//ALU
+  //*******************************************\\
+  always_comb begin: ALU_Logic
+    aluif.ALUOP = deif.ALUctr;
+    aluif.porta = deif.port_a;
+    if (~deif.ALUSrc)
+      aluif.portb = deif.port_b;
+    else 
+      aluif.portb = deif.Imm_Ext;
+  end
+  //*******************************************\\
+//
 
 // Control Unit
   //*******************************************\\
@@ -137,70 +149,52 @@
   //*******************************************\\
 //
 
-
 //Register File
   //*******************************************\\
   always_comb begin: Register_File_Logic
-    rfif.WEN = memwb.RegWr;
+    rfif.WEN = mwif.RegWr;
 
-    if (memwb.jal)
+    if (mwif.jal)
       rfif.wsel = 5'd31;
-    else if (memwb.RegDst)
-      rfif.wsel = memwb.rd;
     else
-      rfif.wsel = memwb.rt;
+      rfif.wsel = mwif.Rd;
     
     rfif.rsel1 = rs;
     rfif.rsel2 = rt;
     
-    case (memwb.MemtoReg)
-      2'd0: rfif.wdat = memwb.port_o;
-      2'd1: rfif.wdat = memwb.NPC;
-      2'd2: rfif.wdat = memwb.dmemload;
-      2'd3: rfif.wdat = memwb.Imm_Ext;
+    case (mwif.MemtoReg)
+      2'd0: rfif.wdat = mwif.port_o;
+      2'd1: rfif.wdat = mwif.NPC;
+      2'd2: rfif.wdat = mwif.dmemload;
+      2'd3: rfif.wdat = mwif.LUI;
     endcase
   end
   //*******************************************\\
 //
-
-
-//Request Unit
-  //*******************************************\\
-  always_comb begin: Request_Unit_Logic
-    ruif.ihit = dpif.ihit;
-    ruif.dhit = dpif.dhit;
-    ruif.iREN = cuif.iREN;
-    ruif.dREN = cuif.dREN;
-    ruif.dWEN = cuif.dWEN;
-  end
-  //*******************************************\\
-//
-
 
 // Program Counter
   //*******************************************\\
   always_comb begin: Program_Counter_Logic
-    case (cuif.JumpSel)
+    case (deif.JumpSel)
       2'd0: pcif.next_PC = BranchAddr;
-      2'd1: pcif.next_PC = JumpAddr;
-      2'd2: pcif.next_PC = JRAddr;
+      2'd1: pcif.next_PC = deif.JumpAddr;
+      2'd2: pcif.next_PC = deif.port_a;
       default: pcif.next_PC = BranchAddr;
     endcase
-    pcif.EN = dpif.ihit;
+    pcif.EN = dpif.ihit & ~dpif.dhit;
   end
   //*******************************************\\
 //
 
-
 //Datapath External Routings
   //*******************************************\\
   always_comb begin: Datapath_Logic
-    dpif.imemREN = cuif.iREN;
+    dpif.imemREN = 1'b1;
     dpif.imemaddr = pcif.PC;
-    dpif.dmemREN = ruif.dmemREN;
-    dpif.dmemWEN = ruif.dmemWEN;
-    dpif.dmemstore = rfif.rdat2;
-    dpif.dmemaddr = aluif.oport;
+    dpif.dmemREN = emif.dREN;
+    dpif.dmemWEN = emif.dWEN;
+    dpif.dmemstore = emif.dmemstore;
+    dpif.dmemaddr = emif.port_o;
   end
   //*******************************************\\
 //
@@ -208,8 +202,112 @@
   always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic
     if (~nRST)
       dpif.halt <= 1'b0;
+    else if (mwif.halt)
+      dpif.halt <= mwif.halt;
     else
-      dpif.halt <= cuif.halt;
+      dpif.halt <= 1'b0;
+  end
+
+//Instruction Fetch/Decode Latch Connections
+  always_comb begin: IFID_Logic
+    // Datapath Signals
+    fdif.ihit = dpif.ihit;
+
+    // Decode Signals
+    fdif.imemload_in = dpif.imemload;
+    
+    // Writeback Signals
+    fdif.NPC_in = npc;
+  end
+
+//Instruction Decode/Execute Latch Connections
+  always_comb begin: IDEX_Logic
+    // Datapath Signals
+    deif.ihit = dpif.ihit;
+    deif.JumpSel_in = cuif.JumpSel;
+
+    // Execute Signals
+    deif.ALUctr_in = cuif.ALUctr;
+    deif.ALUSrc_in = cuif.ALUSrc;
+    deif.BEQ_in = cuif.BEQ;
+    deif.BNE_in = cuif.BNE;
+    deif.JumpAddr_in = {fdif.NPC[31:28], Instruction[25:0], 2'b00};
+
+    // Mem Signals
+    deif.dREN_in = cuif.dREN;
+    deif.dWEN_in = cuif.dWEN;
+
+    // Writeback Signals
+    deif.jal_in = cuif.jal;
+    deif.RegDst_in = cuif.RegDst;
+    deif.RegWr_in = cuif.RegWr;
+    deif.MemtoReg_in = cuif.MemtoReg;
+    deif.halt_in = cuif.halt;
+
+    // Writeback Signals (Passthrough)
+    deif.NPC_in = fdif.NPC;
+
+    // Data Signals
+    if (cuif.RegDst)
+      deif.Rd_in = rd;
+    else
+      deif.Rd_in = rt;
+    deif.Rt_in = rs;
+    deif.port_a_in = rfif.rdat1;
+    deif.port_b_in = rfif.rdat2;
+    deif.Imm_Ext_in = Imm_Ext;
+  end
+
+// Execute/Memory Latch Connections
+  always_comb begin: EXMEM_Logic
+    // Datapath Signals
+    emif.ihit = dpif.ihit;
+    emif.dhit = dpif.dhit;
+
+    // Mem Signals (Passthrough)
+    emif.dREN_in = deif.dREN;
+    emif.dWEN_in = deif.dWEN;
+
+    // Writeback Signals (Passthrough)
+    emif.NPC_in = deif.NPC;
+    emif.jal_in = deif.jal;
+    emif.RegDst_in = deif.RegDst;
+    emif.RegWr_in = deif.RegWr;
+    emif.MemtoReg_in = deif.MemtoReg;
+    emif.halt_in = deif.halt;
+
+    // Data Signals
+    emif.port_o_in = aluif.oport;
+    emif.LUI_in = {deif.Imm_Ext, 16'b0};
+
+    // Data Signals (Passthrough)
+    emif.Rd_in = deif.Rd;
+    emif.Rt_in = deif.Rt;
+    emif.dmemstore_in = deif.port_b;
+  end
+
+// Memory/Writeback Latch Connections
+  always_comb begin: MEMWB_Logic
+    // Datapath Signals
+    mwif.ihit = dpif.ihit;
+    mwif.dhit = dpif.dhit;
+
+    // Writeback Signals (Passthrough)
+    mwif.NPC_in = emif.NPC;
+    mwif.jal_in = emif.jal;
+    mwif.RegDst_in = emif.RegDst;
+    mwif.RegWr_in = emif.RegWr;
+    mwif.MemtoReg_in = emif.MemtoReg;
+    mwif.halt_in = emif.halt;
+
+    // Data Signals (Passthrough)
+    mwif.Rd_in = emif.Rd;
+    mwif.Rt_in = emif.Rt;
+    mwif.port_o_in = emif.port_o;
+    mwif.LUI_in = emif.LUI;
+
+    // Data Signals
+    mwif.dmemload_in = dpif.dmemload;
   end
 
 endmodule
