@@ -87,8 +87,6 @@ function void clear_to_nop();
         emif.dREN = 0;
         emif.dWEN = 0;
 
-        emif.jal = 0;
-        emif.RegDst = 0;
         emif.RegWr = 0;
         emif.MemtoReg = 0;
         emif.halt = 0;

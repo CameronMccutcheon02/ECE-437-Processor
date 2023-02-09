@@ -53,8 +53,6 @@ function void transfer(); //on clock edge, we can call the store method to grab 
         NPC = NPC_in;
 
         ALUctr = ALUctr_in;
-        jal = jal_in;
-        RegDst = RegDst_in;
         RegWr = RegWr_in;
         ALUSrc = ALUSrc_in;
         BEQ = BEQ_in;
@@ -76,8 +74,6 @@ function void clear_to_nop();
         NPC = 0;
 
         ALUctr = ALU_ADD;
-        jal = 0;
-        RegDst = 0;
         RegWr = 0;
         ALUSrc = 0;
         BEQ = 0;
@@ -110,16 +106,13 @@ modport IDEX (
         input dWEN_in,                          output dWEN,
 
         //WB Layer
-        input jal_in,                           output jal,
-        input RegDst_in,                        output RegDst,
         input RegWr_in,                         output RegWr,
         input MemtoReg_in,                      output MemtoReg,
         input halt_in,                          output halt,
         
         //data signals
         input NPC_in,                           output NPC,
-        input Rd_in,                            output Rd,
-        input Rt_in,                            output Rt,
+        input RW_in,                            output RW,
         input port_a_in,                        output port_a,
         input port_b_in,                        output port_b,
         input Imm_Ext_in,                       output Imm_Ext
@@ -133,16 +126,13 @@ modport EXMEM (
         input dWEN_in,                          output dWEN,
 
         //WB Layer
-        input jal_in,                           output jal,
-        input RegDst_in,                        output RegDst,
         input RegWr_in,                         output RegWr,
         input MemtoReg_in,                      output MemtoReg,
         input halt_in,                          output halt,
 
         //data signals
         input NPC_in,                           output NPC,
-        input Rd_in,                            output Rd,
-        input Rt_in,                            output Rt,
+        input RW_in,                            output RW,
         input port_o_in,                        output port_o,
         input LUI_in,                           output LUI,
         input dmemstore_in,                     output dmemstore
@@ -153,16 +143,13 @@ modport MEMWB (
         input stall, flush, ihit, dhit,
 
         //WB Layer
-        input jal_in,                           output jal,
-        input RegDst_in,                        output RegDst,
         input RegWr_in,                         output RegWr,
         input MemtoReg_in,                      output MemtoReg,
         input halt_in,                          output halt,
 
         //data signals
         input NPC_in,                           output NPC,
-        input Rd_in,                            output Rd,
-        input Rt_in,                            output Rt,
+        input RW_in,                            output RW,
         input port_o_in,                        output port_o,
         input LUI_in,                           output LUI,
         input dmemload_in,                      output dmemload

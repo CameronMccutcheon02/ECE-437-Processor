@@ -127,8 +127,6 @@ function void clear_to_nop();
         deif.dWEN = 0;
 
         //WB Layer
-        deif.jal = 0;
-        deif.RegDst = 0;
         deif.RegWr = 0;
         deif.MemtoReg = 0;
         deif.halt = 0;

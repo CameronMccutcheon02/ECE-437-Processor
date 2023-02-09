@@ -33,7 +33,7 @@ module memwb(
 
       //data signals
       mwif.NPC <= mwif.NPC_in;
-      mwif.RW <= mwif.Rd_in;
+      mwif.RW <= mwif.RW_in;
       mwif.port_o <= mwif.port_o_in;
       mwif.LUI <= mwif.LUI_in;
       mwif.dmemload <= mwif.dmemload_in;
@@ -45,7 +45,7 @@ module memwb(
 
       //data signals
       mwif.NPC <= mwif.NPC;
-      mwif.RW <= mwif.Rd;
+      mwif.RW <= mwif.RW;
       mwif.port_o <= mwif.port_o;
       mwif.LUI <= mwif.LUI;
       mwif.dmemload <= mwif.dmemload;
@@ -54,31 +54,25 @@ module memwb(
 
 function void transfer(); //on clock edge, we can call the store method to grab these output
         //WB Layer
-        mwif.jal = mwif.jal_in;
-        mwif.RegDst = mwif.RegDst_in;
         mwif.RegWr = mwif.RegWr_in;
         mwif.MemtoReg = mwif.MemtoReg_in;
         mwif.halt = mwif.halt_in;
 
         //data signals
         mwif.NPC = mwif.NPC_in;
-        mwif.Rd = mwif.Rd_in;
-        mwif.Rt = mwif.Rt_in;
+        mwif.RW = mwif.RW_in;
         mwif.port_o = mwif.port_o_in;
         //mwif.Imm_Ext = mwif.Imm_Ext_in;
         mwif.dmemload = mwif.dmemload_in;
 endfunction
 
 function void clear_to_nop();
-        mwif.jal = 0;
-        mwif.RegDst = 0;
         mwif.RegWr = 0;
         mwif.MemtoReg = 0;
         mwif.halt = 0;
 
         mwif.NPC = 0;
-        mwif.Rd = 0;
-        mwif.Rt = 0;
+        mwif.RW = 0;
         mwif.port_o = 0;
         //mwif.Imm_Ext = 0;
         mwif.dmemload = 0;
