@@ -13,7 +13,23 @@ module exmem(
 );
 
   always_ff @(posedge CLK, negedge nRST) begin: Reg_Logic
-    if (~nRST | emif.flush | emif.dhit) begin
+    if (~nRST) begin
+      //mem layer
+      emif.dREN <= '0;
+      emif.dWEN <= '0;
+
+      //wb layer
+      emif.RegWr <= '0;
+      emif.MemtoReg <= '0;
+      emif.halt <= '0;
+
+      //datas
+      emif.NPC <= '0;
+      emif.RW <= '0;
+      emif.port_o <= '0;
+      emif.LUI <= '0;
+      emif.dmemstore <= '0;
+    end else if (emif.flush | emif.dhit) begin
       //mem layer
       emif.dREN <= '0;
       emif.dWEN <= '0;

@@ -13,9 +13,12 @@ module ifid(
 );
 
   always_ff @(posedge CLK, negedge nRST) begin: Reg_Logic
-    if (~nRST | (fdif.flush & fdif.ihit)) begin
+    if (~nRST) begin
       fdif.imemload <= '0;
       fdif.NPC <= '0;
+    end else if (fdif.flush & fdif.ihit) begin
+      fdif.imemload <= '0;
+      fdif.NPC <= '0;    
     end else if (~fdif.stall & fdif.ihit) begin
       fdif.imemload <= fdif.imemload_in;
       fdif.NPC <= fdif.NPC_in;

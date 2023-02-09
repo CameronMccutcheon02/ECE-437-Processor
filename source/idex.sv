@@ -16,7 +16,31 @@ module idex(
   import cpu_types_pkg::*;
 
   always_ff @(posedge CLK, negedge nRST) begin: Reg_Logic
-    if (~nRST | (deif.flush & deif.ihit)) begin
+    if (~nRST) begin
+      //Execute Layer
+      deif.ALUctr <= ALU_ADD;
+      deif.ALUSrc <= '0;
+      deif.BEQ <= '0;
+      deif.BNE <= '0;
+      deif.JumpSel <= '0;
+      deif.JumpAddr <= '0;
+
+      //Mem Layer
+      deif.dREN <= '0;
+      deif.dWEN <= '0;
+
+      //WB Layer
+      deif.RegWr <= '0;
+      deif.MemtoReg <= '0;
+      deif.halt <= '0;
+
+      //Data Signals
+      deif.NPC <= '0;
+      deif.RW <= '0;
+      deif.port_a <= '0;
+      deif.port_b <= '0;
+      deif.Imm_Ext <= '0;
+    end else if (deif.flush & deif.ihit) begin
       //Execute Layer
       deif.ALUctr <= ALU_ADD;
       deif.ALUSrc <= '0;
