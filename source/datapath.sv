@@ -118,7 +118,7 @@ end
 
   always_comb begin: Execute_Signals
     if ((deif.BEQ & aluif.zero) | (deif.BNE & ~aluif.zero))
-      BranchAddr = (npc + {deif.Imm_Ext[29:0], 2'b00});
+      BranchAddr = (deif.NPC + {deif.Imm_Ext[29:0], 2'b00});
     else
       BranchAddr = npc;
   end
