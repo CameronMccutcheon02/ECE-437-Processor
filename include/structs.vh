@@ -11,7 +11,6 @@
 typedef struct {
     word_t  imemload; 
     word_t  NPC;
-    logic   ihit;
 
 }   fetch_t;
 
@@ -61,6 +60,7 @@ typedef struct {
 
     //data signals
     word_t port_o;
+    word_t port_a;
     word_t port_b;
     word_t Imm_Ext;
 
@@ -68,39 +68,31 @@ typedef struct {
 
 
 
-typedef struct {
-    //Mem Layer
-    logic BEQ;
-    logic BNE;
-    logic alu_zero;
-    logic [1:0] JumpSel;
-    
+typedef struct {    
     //WB Layer
     logic RegWr;
     logic [1:0] MemtoReg;
     logic halt;
     logic [4:0] RW;
+    word_t NPC;
     
     //data signals
     word_t port_o;
-    word_t port_a;
     word_t dmemload;
     word_t Imm_Ext;
-    word_t NPC;
-    word_t JumpAddr;
 
 }   memory_t;
 
 
 typedef struct {
     //WB Layer
-    logic RegWr;
-    logic halt;
-    logic [4:0] RW;
-    word_t NPC;
+    // logic RegWr;
+    // logic halt;
+    // logic [4:0] RW;
+    // word_t NPC;
 
     //data signals
     word_t port_w;
 
-}   writeback;
+}   writeback_t;
 
