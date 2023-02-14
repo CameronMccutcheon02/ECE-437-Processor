@@ -15,10 +15,7 @@ typedef struct {
 
 }   fetch_t;
 
-
 typedef struct {
-    logic stall, flush, ihit;
-
     //Execute Layer
     aluop_t ALUctr;
     logic ALUSrc;
@@ -45,9 +42,7 @@ typedef struct {
 }   decode_t;
 
 
-typedef struct {
-    logic stall, flush, ihit, dhit;
-    
+typedef struct {    
     //Mem Layer
     logic dREN;
     logic dWEN;
@@ -74,8 +69,6 @@ typedef struct {
 
 
 typedef struct {
-    logic stall, flush, ihit, dhit;
-
     //Mem Layer
     logic BEQ;
     logic BNE;
@@ -100,7 +93,6 @@ typedef struct {
 
 
 typedef struct {
-
     //WB Layer
     logic RegWr;
     logic halt;

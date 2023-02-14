@@ -96,14 +96,15 @@ modport IDEX (
         //Execute Layer
         input ALUctr_in,                        output ALUctr,
         input ALUSrc_in,                        output ALUSrc,
-        input BEQ_in,                           output BEQ,
-        input BNE_in,                           output BNE,
-        input JumpSel_in,                       output JumpSel,
-        input JumpAddr_in,                      output JumpAddr,
 
         //Mem Layer
         input dREN_in,                          output dREN,
         input dWEN_in,                          output dWEN,
+        input BEQ_in,                           output BEQ,
+        input BNE_in,                           output BNE,
+        input JumpSel_in,                       output JumpSel,
+        input JumpAddr_in,                      output JumpAddr,
+        input zero_in,                          output zero,
 
         //WB Layer
         input RegWr_in,                         output RegWr,
@@ -124,6 +125,10 @@ modport EXMEM (
         //Mem Layer
         input dREN_in,                          output dREN,
         input dWEN_in,                          output dWEN,
+        input BEQ_in,                           output BEQ,
+        input BNE_in,                           output BNE,
+        input JumpSel_in,                       output JumpSel,
+        input JumpAddr_in,                      output JumpAddr,
 
         //WB Layer
         input RegWr_in,                         output RegWr,
@@ -133,6 +138,7 @@ modport EXMEM (
         //data signals
         input NPC_in,                           output NPC,
         input RW_in,                            output RW,
+        input port_a_in                         output port_a,
         input port_o_in,                        output port_o,
         input LUI_in,                           output LUI,
         input dmemstore_in,                     output dmemstore

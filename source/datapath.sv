@@ -13,6 +13,7 @@
 `include "register_file_if.vh"
 `include "request_unit_if.vh"
 `include "program_counter_if.vh"
+`include "hazard_unit_if.vh"
 `include "pipeline_if.vh"
 
   // alu op, mips op, and instruction type
@@ -42,6 +43,7 @@
   control_unit_if cuif();
   register_file_if rfif();
   program_counter_if pcif();
+  hazard_unit_if huif();
 
   pipeline_if fdif();
   pipeline_if deif();
@@ -53,6 +55,7 @@
   control_unit CU(cuif);
   register_file RF(CLK, nRST, rfif);
   program_counter PC(CLK, nRST, pcif);
+  hazard_unit HU(huif);
 
   ifid FD(CLK, nRST, fdif);
   idex DE(CLK, nRST, deif);
@@ -180,6 +183,14 @@ end
     endcase
     pcif.EN = dpif.ihit & ~dpif.dhit;
   end
+  //*******************************************\\
+//
+
+// Hazard Unit
+  //*******************************************\\
+
+
+
   //*******************************************\\
 //
 
