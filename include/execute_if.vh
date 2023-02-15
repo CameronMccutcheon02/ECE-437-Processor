@@ -7,23 +7,16 @@ interface execute_if;
     import structs::*;
 
     //Inputs to stage
+    logic ihit, dhit, flush, freeze;
     decode_t decode_p; //bus inputs from fetch stage
-    logic ihit, dhit, flush, stall;
     
-
     //Outputs of stage
     execute_t execute_p;
     
     modport EX (
-        input decode_p, ihit, dhit,
+        input ihit, dhit, flush, freeze, decode_p, 
         output execute_p
     );
-
-
-
-
-
-
 
 endinterface
 `endif

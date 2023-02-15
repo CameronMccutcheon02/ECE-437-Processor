@@ -7,23 +7,17 @@ interface decode_if;
     import structs::*;
 
     //Inputs to stage
+    logic ihit, dhit, flush, freeze;
     fetch_t fetch_p; //bus inputs from fetch stage
-    logic ihit, dhit, flush, stall;
     memory_t memory_p; //bus inputs from writeback stage
 
     //Outputs of stage
     decode_t decode_p;
     
     modport DC (
-        input fetch_p, ihit, dhit, memory_p,
+        input ihit, dhit, flush, freeze, fetch_p, memory_p,
         output decode_p
     );
-
-
-
-
-
-
 
 endinterface
 `endif

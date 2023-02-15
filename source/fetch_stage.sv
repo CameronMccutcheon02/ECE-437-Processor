@@ -1,84 +1,78 @@
 //Cameron McCutcheon
 
-`include "datapath_cache_if.vh"
-`include "alu_if.vh"
-`include "control_unit_if.vh"
-`include "register_file_if.vh"
-`include "request_unit_if.vh"
 `include "program_counter_if.vh"
-`include "pipeline_if.vh"
-`include "cpu_types_pkg.vh"
-`include "structs.vh"
-
-`include "decode_if.vh"
-`include "execute_if.vh"
-`include "memory_if.vh"
-`include "writeback_if.vh"
 `include "fetch_if.vh"
+
+`include "cpu_types_pkg.vh"
+`include "custom_types_pkg.vh"
 
 module fetch_stage(
     input logic CLK, nRST
     fetch_if.FT ftif
-
 );
 
-//grab all the structs values
-import structs::*;
-import cpu_types_pkg::*;
+    //grab all the structs values
+    import cpu_types_pkg::*;
+    import custom_types_pkg::*;
 
-fetch_t fetch;
+    // initialize structs
+    fetch_t fetch;
 
-always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
-    if (~nRST)
-        void`(ftif.fetch_p);
-    else if (exif.ihit)
-        ftif.fetch_p <= fetch;
-    else if (ftif.flush)
-        void`(ftif.fetch_p);
-    else if (ftif.stall)
-        ftif.fetch_p <= ftif.fetch_p;
-    else 
-        ftif.fetch_p <= ftif.fetch_p;
-end
+    // initialize interfaces
+    program_counter_if pcif();
 
-//Program Counter //NICK CAN YOU DO THIS PART?
+    // initialize DUTs
+    program_counter PC(CLK, nRST, pcif);
 
-//do note that the control signals are coming from the execute data structure 
-//because of the way the latching is done, all the signals should be present
-//so just read the structs.vh file to figure out what you need
+    // declare local variables
+    word_t BranchAddr;
 
-//use syntax of ftif.execute_p.BNE to access
-  //*******************************************\\
-  always_comb begin: Program_Counter_Logic
-    case (deif.JumpSel)
-      2'd0: pcif.next_PC = BranchAddr;
-      2'd1: pcif.next_PC = deif.JumpAddr;
-      2'd2: pcif.next_PC = deif.port_a;
-      default: pcif.next_PC = BranchAddr;
-    endcase
-    pcif.EN = dpif.ihit & ~dpif.dhit;
-  end
-  //*******************************************\\
-//
-
-//Block output signal routings
-    //*******************************************\\
-    always_comb begin
-    //registered signals to go into the bus
-    fetch.imemload = ftif.imemload;
-    fetch.NPC = PC + 4; //NICK you can change this stuff too
-    
-
-    //block outputs to program memory
-    ftif.imemREN = 1; 
-    ftif.imemaddr = PC; //NICK
+    always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
+        if (~nRST)
+            void`(ftif.fetch_p);
+        else if (ftif.flush)
+            void`(ftif.fetch_p);
+        else if (ftif.freeze)
+            ftif.fetch_p <= ftif.fetch_p;
+        else if (ftif.ihit)
+            ftif.fetch_p <= fetch;
+        else 
+            ftif.fetch_p <= ftif.fetch_p;
     end
-    //*******************************************\\
+
+// Internal fetch logic
+  //*******************************************\\
+    always_comb begin: Local_Signals_Logic
+        if ((ftif.execute_p.BEQ & ftif.execute_p.zero) | (ftif.execute_p.BNE & ~ftif.execute_p.zero)))
+            BranchAddr = (ftif.execute_p.NPC + {ftif.execute_p.Imm_Ext[29:0], 2'b00});
+        else
+            BranchAddr = pcif.PC + 32'd4;
+    end
+
+    always_comb begin: Program_Counter_Logic
+        case (ftif.execute_p.JumpSel)
+            2'd0: pcif.next_PC = BranchAddr;
+            2'd1: pcif.next_PC = ftif.execute_p.JumpAddr;
+            2'd2: pcif.next_PC = ftif.execute_p.port_a;
+            default: pcif.next_PC = BranchAddr;
+        endcase
+        pcif.EN = ftif.ihit & ~ftif.dhit & ~ftif.freeze;
+    end
+  //*******************************************\\
 //
 
-
-
-
-
+// Block output signal routings
+  //*******************************************\\
+    always_comb begin
+        // Fetch stage outputs
+        fetch.imemload = ftif.imemload;
+        fetch.NPC = picf.next_PC;
+        
+        // Output to datapath-cache interface
+        ftif.imemREN = 1'b1; 
+        ftif.imemaddr = pcif.PC; //NICK
+    end
+  //*******************************************\\
+//
 
 endmodule

@@ -7,6 +7,7 @@ interface fetch_if;
     import structs::*;
 
     //Inputs to stage
+    logic ihit, dhit, flush, freeze;
     word_t imemload;
     execute_t execute_p;
 
@@ -16,7 +17,7 @@ interface fetch_if;
     word_t imemaddr;
     
     modport FT (
-        input imemload, execute_p,
+        input ihit, dhit, flush, freeze, imemload, execute_p,
         output fetch_p, imemREN, imemaddr
     );
 

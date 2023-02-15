@@ -7,10 +7,9 @@ interface memory_if;
     import structs::*;
 
     //Inputs to stage
+    logic ihit, dhit, flush, freeze;
     execute_t execute_p; //latch inputs from last stage
-    logic ihit, dhit, flush, stall;
     word_t dmemload;
-
 
     //Outputs of stage
     memory_t memory_p;
@@ -18,10 +17,9 @@ interface memory_if;
     logic dmemREN, dmemWEN;
     
     modport MEM (
-        input execute_p, ihit, dhit, dmemload,
+        input ihit, dhit, flush, freeze, execute_p, dmemload,
         output memory_p, dmemaddr, dmemstore, dmemREN, dmemWEN
     );
-
 
 endinterface
 `endif

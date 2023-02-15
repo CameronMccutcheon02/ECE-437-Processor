@@ -6,216 +6,77 @@
     muxes, and glue logic for processor
   */
 
-// data path interface
-`include "datapath_cache_if.vh"
-`include "alu_if.vh"
-`include "control_unit_if.vh"
-`include "register_file_if.vh"
-`include "request_unit_if.vh"
-`include "program_counter_if.vh"
-`include "hazard_unit_if.vh"
-`include "pipeline_if.vh"
+`include "fetch_if.vh"
+`include "decode_if.vh"
+`include "execute_if.vh"
+`include "memory_if.vh"
+`include "writeback_if.vh"
 
-  // alu op, mips op, and instruction type
-  `include "cpu_types_pkg.vh"
+`include "cpu_types_pkg.vh"
+`include "custom_types_pkg.vh"
 
-  module datapath (
-    input logic CLK, nRST,
-    datapath_cache_if.dp dpif
-  );
+module datapath (
+	input logic CLK, nRST,
+	datapath_cache_if.dp dpif
+);
     // import types
     import cpu_types_pkg::*;
-
-    // //Interface declarations
-    // control_unit_if cuif();
-    // register_file_if rfif();
-    // alu_if aluif(); 
-
-
+    import custom_types_pkg::*;
 
     // pc init
     parameter PC_INIT = 0;
 
 //Local Declarations
   //*******************************************\\
-  // interfaces
-  alu_if aluif();
-  control_unit_if cuif();
-  register_file_if rfif();
-  program_counter_if pcif();
-  hazard_unit_if huif();
+	// interfaces
+	fetch_if ftif();
+	decode_if dcif();
+	execute_if exif();
+	memory_if mmif();
+	writeback_if wbif();
 
-  pipeline_if fdif();
-  pipeline_if deif();
-  pipeline_if emif();
-  pipeline_if mwif();
-
-  // DUT
-  alu ALU(aluif);
-  control_unit CU(cuif);
-  register_file RF(CLK, nRST, rfif);
-  program_counter PC(CLK, nRST, pcif);
-  hazard_unit HU(huif);
-
-  ifid FD(CLK, nRST, fdif);
-  idex DE(CLK, nRST, deif);
-  exmem EM(CLK, nRST, emif);
-  memwb MW(CLK, nRST, mwif);
-
-
-  // Instruction Signals
-  word_t Instruction;
-  opcode_t op;
-  regbits_t rs;
-  regbits_t rt;
-  regbits_t rd;
-  logic [15:0] imm;
-  funct_t func;
-  //*******************************************\\
-//
-
-// for testing
-always_comb begin: init
-  fdif.stall = 1'b0;
-  fdif.flush = 1'b0;
-  deif.stall = 1'b0;
-  deif.flush = 1'b0;
-  emif.stall = 1'b0;
-  emif.flush = 1'b0;
-  mwif.stall = 1'b0;
-  mwif.flush = 1'b0;
-end
-
-//Instruction routing - will need some of these for the pipelining forwarding unit
-  //*******************************************\\
-  always_comb begin: Instruction_Signals
-    Instruction = fdif.imemload;
-    op = opcode_t'(Instruction[31:26]);
-    rs = Instruction[25:21];
-    rt = Instruction[20:16];
-    rd = Instruction[15:11];
-    imm = Instruction[15:0];
-    func = funct_t'(Instruction[5:0]);
-  end
-  //*******************************************\\
-//
- 
-//Datapath
-  //*******************************************\\
-  word_t npc;
-  word_t ZeroExtImm;
-  word_t SignExtImm;
-  word_t Imm_Ext;
-  word_t BranchAddr;
-
-  always_comb begin: Decode_Signals
-    npc = pcif.PC + 32'd4;
-    ZeroExtImm = {16'h0000, imm};
-    SignExtImm = {{16{imm[15]}}, imm};
-    
-    if (cuif.ExtOP)
-      Imm_Ext = SignExtImm;
-    else
-      Imm_Ext = ZeroExtImm;
-  end 
-
-  always_comb begin: Execute_Signals
-    if ((deif.BEQ & aluif.zero) | (deif.BNE & ~aluif.zero))
-      BranchAddr = (deif.NPC + {deif.Imm_Ext[29:0], 2'b00});
-    else
-      BranchAddr = npc;
-  end
-  //*******************************************\\
-//
-
-//ALU
-  //*******************************************\\
-  always_comb begin: ALU_Logic
-    aluif.ALUOP = deif.ALUctr;
-    aluif.porta = deif.port_a;
-    if (~deif.ALUSrc)
-      aluif.portb = deif.port_b;
-    else 
-      aluif.portb = deif.Imm_Ext;
-  end
-  //*******************************************\\
-//
-
-// Control Unit
-  //*******************************************\\
-  always_comb begin: Control_Unit_Logic
-    cuif.opcode = op;
-    cuif.func = func;
-    cuif.ihit = dpif.ihit;
-    cuif.dhit = dpif.dhit;
-  end
-  //*******************************************\\
-//
-
-//Register File
-  //*******************************************\\
-  always_comb begin: Register_File_Logic
-    rfif.WEN = mwif.RegWr;
-
-    rfif.wsel = mwif.RW;
-    
-    rfif.rsel1 = rs;
-    rfif.rsel2 = rt;
-    
-    case (mwif.MemtoReg)
-      2'd0: rfif.wdat = mwif.port_o;
-      2'd1: rfif.wdat = mwif.NPC;
-      2'd2: rfif.wdat = mwif.dmemload;
-      2'd3: rfif.wdat = mwif.LUI;
-    endcase
-  end
-  //*******************************************\\
-//
-
-// Program Counter
-  //*******************************************\\
-  always_comb begin: Program_Counter_Logic
-    case (deif.JumpSel)
-      2'd0: pcif.next_PC = BranchAddr;
-      2'd1: pcif.next_PC = deif.JumpAddr;
-      2'd2: pcif.next_PC = deif.port_a;
-      default: pcif.next_PC = BranchAddr;
-    endcase
-    pcif.EN = dpif.ihit & ~dpif.dhit;
-  end
-  //*******************************************\\
-//
-
-// Hazard Unit
-  //*******************************************\\
-
-
+	// DUT
+	fetch_stage FT(CLK, nRST, ftif);
+	decode_stage DC(CLK, nRST, dcif);
+	execute_stage EX(CLK, nRST, exif);
+	memory_stage MM(CLK, nRST, mmif);
+	writeback_stage WB(wbif);
 
   //*******************************************\\
 //
 
-//Datapath External Routings
+//Datapath-Cache Routings
   //*******************************************\\
-  always_comb begin: Datapath_Logic
-    dpif.imemREN = 1'b1;
-    dpif.imemaddr = pcif.PC;
-    dpif.dmemREN = emif.dREN;
-    dpif.dmemWEN = emif.dWEN;
-    dpif.dmemstore = emif.dmemstore;
-    dpif.dmemaddr = emif.port_o;
-  end
+	always_comb begin: Datapath_Logic
+		// instruction memory
+		dpif.imemREN = ftif.fetch_p.imemREN;
+		dpif.imemaddr = ftif.fetch_p.imemaddr;
+		ftif.imemload = dpif.imemload;
+
+		// data memory
+		dpif.dmemREN = mmif.memory_p.dREN;
+		dpif.dmemWEN = mmif.memory_p.dWEN;
+		dpif.dmemstore = mmif.memory_p.dmemstore;
+		dpif.dmemaddr = mmif.memory_p.dmemaddr;
+		mmif.dmemload = dpif.dmemload;
+	end
+
+	always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic
+		if (~nRST)
+			dpif.halt <= 1'b0;
+		else if (mmif.memory_p.halt)
+			dpif.halt <= mmif.memory_p.halt;
+		else
+			dpif.halt <= 1'b0;
+	end
   //*******************************************\\
 //
 
-  always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic
-    if (~nRST)
-      dpif.halt <= 1'b0;
-    else if (mwif.halt)
-      dpif.halt <= mwif.halt;
-    else
-      dpif.halt <= 1'b0;
-  end
 
+// TODO: CONNECT THE MODULARIZED STAGES TOGETHER BELOW
+
+
+// EVERYTHING BELOW CAN BE DELETED ONCE REWRITTEN (can just stay for reference)
 //Instruction Fetch/Decode Latch Connections
   always_comb begin: IFID_Logic
     // Datapath Signals
