@@ -131,7 +131,7 @@ module decode_stage(
 		dcif.JumpSel = cuif.JumpSel;
 		dcif.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
 		dcif.BranchTaken = 1'b0;
-		if (cuif.BEQ & (rfif.rdat1 == rfif.rdat2) | cuif.BNE & (rfif.rdat1 == rfif.rdat2))
+		if (cuif.BEQ & (rfif.rdat1 == rfif.rdat2) | cuif.BNE & (rfif.rdat1 != rfif.rdat2))
 			dcif.BranchTaken = 1'b1;
 		dcif.BranchAddr = dcif.fetch_p.NPC + {Imm_Ext[29:0], 2'b00};
 	end
