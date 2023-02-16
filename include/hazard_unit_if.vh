@@ -21,7 +21,7 @@ interface hazard_unit_if;
 
     modport tb (
         input flush, freeze,
-        output memread_dc, Rt_dc, Rs_ft, Rt_ft, Rt_ex, BranchTaken, JumpSel
+        output memread_dc, memread_ex, Rt_dc, Rs_ft, Rt_ft, Rt_ex, BranchTaken, JumpSel
     );
 
 endinterface
