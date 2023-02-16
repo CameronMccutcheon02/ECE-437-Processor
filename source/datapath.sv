@@ -87,10 +87,9 @@ module datapath (
     huif.Rt_dc = dcif.decode_p.Rt;
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
-    huif.BEQ = dcif.BEQ;
-    huif.BNE = dcif.BNE;
-    huif.zero = dcif.zero;
+    huif.Rt_ex = exif.execute_p.Rt;
     huif.JumpSel = dcif.JumpSel;
+    huif.BranchTaken = dcif.BranchTaken;
     flush = huif.flush;
     freeze = huif.freeze;
   end
@@ -104,7 +103,12 @@ module datapath (
   end
 
   always_comb begin : in_fetch
-    ftif.execute_p = exif.execute_p;
+    //ftif.execute_p = exif.execute_p;
+    ftif.BranchTaken = dcif.BranchTaken;
+    ftif.BranchAddr = dcif.BranchAddr;
+    ftif.JumpSel = dcif.JumpSel;
+    ftif.JumpAddr = dcif.JumpAddr;
+    ftif.port_a = dcif.porta;
   end
 
   always_comb begin : Decode_to_Execute
@@ -146,8 +150,6 @@ module datapath (
     dcif.dhit = dpif.dhit;
     exif.dhit = dpif.dhit;
     mmif.dhit = dpif.dhit;
-
-
   end
 //
 

@@ -29,10 +29,10 @@ package custom_types_pkg;
         //Mem Layer
         logic dREN;
         logic dWEN;
-        logic BEQ;
-        logic BNE;
-        logic [1:0] JumpSel;
-        word_t JumpAddr;
+        //logic BEQ;
+        //logic BNE;
+        //logic [1:0] JumpSel;
+        //word_t JumpAddr;
 
         //WB Layer
         regbits_t Rw;
@@ -48,15 +48,18 @@ package custom_types_pkg;
     }   decode_t;
 
 
-    typedef struct packed {    
+    typedef struct packed {   
+        //hazard unit
+        word_t Rt;
+         
         //Mem Layer
         logic dREN;
         logic dWEN;
-        logic BEQ;
-        logic BNE;
-        logic zero;
-        logic [1:0] JumpSel;
-        word_t JumpAddr;
+        //logic BEQ;
+        //logic BNE;
+        //logic zero;
+        //logic [1:0] JumpSel;
+        //word_t JumpAddr;
 
         //WB Layer
         regbits_t Rw;

@@ -103,10 +103,10 @@ module decode_stage(
 		//Mem Layer
 		decode.dREN = cuif.dREN;
 		decode.dWEN = cuif.dWEN;
-		decode.BEQ = cuif.BEQ;
-		decode.BNE = cuif.BNE;
-		decode.JumpSel = cuif.JumpSel;
-		decode.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
+		//decode.BEQ = cuif.BEQ;
+		//decode.BNE = cuif.BNE;
+		//decode.JumpSel = cuif.JumpSel;
+		//decode.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
 
 		//WB Layer
 		decode.Rw = (cuif.jal) ? 5'd31 : (cuif.RegDst) ? rd : rt;
@@ -127,10 +127,13 @@ module decode_stage(
 		decode.Imm_Ext = Imm_Ext;
 
 		// combinational outputs for hazard unit
-		dcif.BEQ = cuif.BEQ;
-		dcif.BNE = cuif.BNE;
-		dcif.equal = rfif.rdat1 == rfif.rdat2;
+		dcif.porta = rfif.rdat1;
 		dcif.JumpSel = cuif.JumpSel;
+		dcif.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
+		dcif.BranchTaken = 1'b0;
+		if (cuif.BEQ & (rfif.rdat1 == rfif.rdat2) | cuif.BNE & (rfif.rdat1 == rfif.rdat2))
+			dcif.BranchTaken = 1'b1;
+		dcif.BranchAddr = dcif.fetch_p.NPC + {Imm_Ext[29:0], 2'b00};
 	end
     //*******************************************\\
 //
