@@ -7,7 +7,7 @@
 `include "custom_types_pkg.vh"
 
 module execute_stage(
-    input logic CLK, nRST
+    input logic CLK, nRST,
     execute_if.EX exif
 );
 
@@ -26,9 +26,9 @@ module execute_stage(
 
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
-            void`(exif.execute_p);
-        else if (exif.flush)
-            void`(exif.execute_p);
+            exif.execute_p <= '0;
+        else if (exif.flush | exif.dhit)
+            exif.execute_p <= '0;
         else if (exif.freeze)
             exif.execute_p <= exif.execute_p;
         else if (exif.ihit)

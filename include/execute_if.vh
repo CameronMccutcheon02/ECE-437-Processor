@@ -1,10 +1,11 @@
 `ifndef EXE_IF_VH
 `define EXE_IF_VH
 `include "cpu_types_pkg.vh"
+`include "custom_types_pkg.vh"
 
 interface execute_if;
     import cpu_types_pkg::*;
-    import structs::*;
+    import custom_types_pkg::*;
 
     //Inputs to stage
     logic ihit, dhit, flush, freeze;

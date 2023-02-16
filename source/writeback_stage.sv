@@ -20,8 +20,15 @@ module writeback_stage(
         2'd0: wbif.writeback_p.port_w = wbif.memory_p.port_o;
         2'd1: wbif.writeback_p.port_w = wbif.memory_p.NPC;
         2'd2: wbif.writeback_p.port_w = wbif.memory_p.dmemload;
-        2'd3: wbif.writeback_p.port_w = wbif.memory_p.LUI;
+        2'd3: wbif.writeback_p.port_w = wbif.memory_p.Imm_Ext;
         endcase 
+    end
+
+
+    always_comb begin
+        wbif.writeback_p.RegWEN = wbif.memory_p.RegWEN;
+        wbif.writeback_p.halt = wbif.memory_p.halt;
+        wbif.writeback_p.Rw = wbif.memory_p.Rw;
     end
     //*******************************************\\
 //

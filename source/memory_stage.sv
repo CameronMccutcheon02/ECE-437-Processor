@@ -6,7 +6,7 @@
 `include "custom_types_pkg.vh"
 
 module memory_stage(
-    input logic CLK, nRST
+    input logic CLK, nRST,
     memory_if.MEM mmif
 );
 
@@ -19,9 +19,9 @@ module memory_stage(
 
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
-            void`(mmif.memory_p);
+            mmif.memory_p <= '0;
         else if (mmif.flush)
-            void`(mmif.memory_p);
+            mmif.memory_p <= '0;
         else if (mmif.freeze)
             mmif.memory_p <= mmif.memory_p;
         else if (mmif.ihit | mmif.dhit)
@@ -52,9 +52,9 @@ module memory_stage(
         memory.NPC = mmif.execute_p.NPC;
         
         //data signals
-        memory.port_o = mmif.execute_p.oport;
+        memory.port_o = mmif.execute_p.port_o;
         memory.dmemload = mmif.dmemload;
-        memory.LUI = mmif.execute_p.Imm_Ext;
+        memory.Imm_Ext = mmif.execute_p.Imm_Ext;
     end
   //*******************************************\\
 //

@@ -8,7 +8,7 @@
 `include "custom_types_pkg.vh"
 
 module decode_stage(
-    input logic CLK, nRST
+    input logic CLK, nRST,
     decode_if.DC dcif
 );
 
@@ -39,9 +39,9 @@ module decode_stage(
 
 	always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
 		if (~nRST)
-			void`(dcif.decode_p);
+			dcif.decode_p <= '0;
 		else if (dcif.flush)
-			void`(dcif.decode_p);
+			dcif.decode_p <= '0;
 		else if (dcif.freeze)
 			dcif.decode_p <= dcif.decode_p;
 		else if (dcif.ihit)
@@ -80,14 +80,14 @@ module decode_stage(
 //Register File
   //*******************************************\\
 	always_comb begin: Register_File_Logic
-		rfif.WEN = dcif.memory_p.RegWEN;
+		rfif.WEN = dcif.writeback_p.RegWEN;
 
-		rfif.wsel = dcif.memory_p.RW;
+		rfif.wsel = dcif.writeback_p.Rw;
 
 		rfif.rsel1 = rs;
 		rfif.rsel2 = rt;
 
-		rfif.wdat = dcif.memory_p.port_w;
+		rfif.wdat = dcif.writeback_p.port_w;
 	end
   //*******************************************\\
 //
@@ -117,10 +117,12 @@ module decode_stage(
 		//data signals
 		decode.port_a = rfif.rdat1;
 		decode.port_b = rfif.rdat2;
-		if (cuif.ExtOP)
+		if (cuif.ExtOP == 1)
 			Imm_Ext = {{16{imm[15]}}, imm};
-		else
+		else if (cuif.ExtOP == 2)
 			Imm_Ext = {16'h0000, imm};
+		else 
+			Imm_Ext = {imm, 16'h0000};
 		decode.Imm_Ext = Imm_Ext;
 	end
     //*******************************************\\

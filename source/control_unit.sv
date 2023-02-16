@@ -15,7 +15,7 @@ module control_unit (
         cuif.ALUSrc = 1'b0;
         cuif.ALUctr = ALU_ADD;
         cuif.MemtoReg = 2'b0;
-        cuif.ExtOP = 1'b1; // 0 = zero 1 = signed
+        cuif.ExtOP = 2'b01; // 0 = zero 1 = signed, 2 = LUI extend
         cuif.halt = 1'b0;
         cuif.iREN = 1'b1;
         cuif.dREN = 1'b0;
@@ -41,7 +41,7 @@ module control_unit (
                     OR: begin
                         cuif.RegWEN = 1'b1;
                         cuif.ALUctr = ALU_OR;
-                        cuif.ExtOP = 1'b0;
+                        cuif.ExtOP = 2'b00;
                     end
                     SLT: begin 
                         cuif.RegWEN = 1'b1;
@@ -100,6 +100,8 @@ module control_unit (
                 cuif.RegWEN = 1'b1;
                 cuif.ALUSrc = 1'b1;
                 cuif.MemtoReg = 2'd3;
+                cuif.ALUctr = ALU_OR;
+                cuif.ExtOP = 2'b10;
             end
             LW: begin
                 cuif.RegWEN = 1'b1;
@@ -111,7 +113,7 @@ module control_unit (
                 cuif.RegWEN = 1'b1;
                 cuif.ALUSrc = 1'b1;
                 cuif.ALUctr = ALU_OR;
-                cuif.ExtOP = 1'b0;
+                cuif.ExtOP = 2'b00;
             end
             SLTI: begin
                 cuif.RegWEN = 1'b1;
@@ -131,7 +133,7 @@ module control_unit (
                 cuif.RegWEN = 1'b1;
                 cuif.ALUSrc = 1'b1;
                 cuif.ALUctr = ALU_XOR;
-                cuif.ExtOP = 1'b0;
+                cuif.ExtOP = 2'b00;
             end
 
             // jtype

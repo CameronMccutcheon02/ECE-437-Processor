@@ -11,9 +11,10 @@ interface control_unit_if;
     aluop_t ALUctr;
     logic ihit, dhit, zero;
     logic jal, RegDst, RegWEN, ALUSrc, BEQ, BNE,
-          ExtOP, halt, iREN, dREN, dWEN;
+          halt, iREN, dREN, dWEN;
     logic [1:0] MemtoReg;
     logic [1:0] JumpSel; 
+    logic [1:0] ExtOP;
      
     modport cu (
         input opcode, func, ihit, dhit,

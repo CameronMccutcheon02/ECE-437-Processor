@@ -1,10 +1,11 @@
 `ifndef WB_IF_VH
 `define WB_IF_VH
 `include "cpu_types_pkg.vh"
+`include "custom_types_pkg.vh"
 
 interface writeback_if;
     import cpu_types_pkg::*;
-    import structs::*;
+    import custom_types_pkg::*;
 
     //Inputs to stage
     memory_t memory_p;

@@ -7,7 +7,7 @@
 `include "custom_types_pkg.vh"
 
 module fetch_stage(
-    input logic CLK, nRST
+    input logic CLK, nRST,
     fetch_if.FT ftif
 );
 
@@ -29,9 +29,9 @@ module fetch_stage(
 
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
-            void`(ftif.fetch_p);
+            ftif.fetch_p <= '0;
         else if (ftif.flush)
-            void`(ftif.fetch_p);
+            ftif.fetch_p <= '0;
         else if (ftif.freeze)
             ftif.fetch_p <= ftif.fetch_p;
         else if (ftif.ihit)
@@ -43,7 +43,7 @@ module fetch_stage(
 // Internal fetch logic
   //*******************************************\\
     always_comb begin: Local_Signals_Logic
-        if ((ftif.execute_p.BEQ & ftif.execute_p.zero) | (ftif.execute_p.BNE & ~ftif.execute_p.zero)))
+        if ((ftif.execute_p.BEQ & ftif.execute_p.zero) | (ftif.execute_p.BNE & ~ftif.execute_p.zero))
             BranchAddr = (ftif.execute_p.NPC + {ftif.execute_p.Imm_Ext[29:0], 2'b00});
         else
             BranchAddr = pcif.PC + 32'd4;
@@ -66,13 +66,17 @@ module fetch_stage(
     always_comb begin
         // Fetch stage outputs
         fetch.imemload = ftif.imemload;
-        fetch.NPC = picf.next_PC;
+        fetch.NPC = pcif.next_PC;
         
         // Output to datapath-cache interface
         ftif.imemREN = 1'b1; 
         ftif.imemaddr = pcif.PC; //NICK
     end
   //*******************************************\\
+//
+
+//Branch Predictor Stuff
+
 //
 
 endmodule
