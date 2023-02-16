@@ -125,6 +125,12 @@ module decode_stage(
 		else 
 			Imm_Ext = {imm, 16'h0000};
 		decode.Imm_Ext = Imm_Ext;
+
+		// combinational outputs for hazard unit
+		dcif.BEQ = cuif.BEQ;
+		dcif.BNE = cuif.BNE;
+		dcif.equal = rfif.rdat1 == rfif.rdat2;
+		dcif.JumpSel = cuif.JumpSel;
 	end
     //*******************************************\\
 //

@@ -87,6 +87,10 @@ module datapath (
     huif.Rt_dc = dcif.decode_p.Rt;
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
+    huif.BEQ = dcif.BEQ;
+    huif.BNE = dcif.BNE;
+    huif.zero = dcif.zero;
+    huif.JumpSel = dcif.JumpSel;
     flush = huif.flush;
     freeze = huif.freeze;
   end
@@ -119,17 +123,17 @@ module datapath (
 
 //Pipeline Flush/Freeze routing
   always_comb begin
-    ftif.flush = flush[0];
-    dcif.flush = flush[1];
-    exif.flush = flush[2];
-    mmif.flush = flush[3];
+    ftif.flush = flush[3];
+    dcif.flush = flush[2];
+    exif.flush = flush[1];
+    mmif.flush = flush[0];
   end
 
   always_comb begin
-    ftif.freeze = freeze[0];
-    dcif.freeze = freeze[1];
-    exif.freeze = freeze[2];
-    mmif.freeze = freeze[3];
+    ftif.freeze = freeze[3];
+    dcif.freeze = freeze[2];
+    exif.freeze = freeze[1];
+    mmif.freeze = freeze[0];
   end
 
   always_comb begin

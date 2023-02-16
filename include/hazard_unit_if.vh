@@ -10,9 +10,11 @@ interface hazard_unit_if;
     logic [3:0] freeze;
     logic memread_dc, pc_en;
     word_t Rt_dc, Rs_ft, Rt_ft;
+    logic BEQ, BNE, zero;
+    logic [1:0] JumpSel;
 
     modport hu (
-        input memread_dc, Rt_dc, Rs_ft, Rt_ft,
+        input memread_dc, Rt_dc, Rs_ft, Rt_ft, BEQ, BNE, zero, JumpSel,
         output flush, freeze
     );
 

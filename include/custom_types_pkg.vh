@@ -16,11 +16,12 @@ package custom_types_pkg;
     typedef struct packed{
         word_t  imemload; 
         word_t  NPC;
-
     }   fetch_t;
 
     typedef struct packed{
+        // hazard unit
         word_t Rt;
+
         //Execute Layer
         aluop_t ALUctr;
         logic ALUSrc;

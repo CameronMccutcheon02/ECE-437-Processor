@@ -14,10 +14,12 @@ interface decode_if;
 
     //Outputs of stage
     decode_t decode_p;
+    logic BEQ, BNE, equal;
+    logic [1:0] JumpSel;
     
     modport DC (
         input ihit, dhit, flush, freeze, fetch_p, writeback_p,
-        output decode_p
+        output decode_p, BEQ, BNE, equal, JumpSel
     );
 
 endinterface
