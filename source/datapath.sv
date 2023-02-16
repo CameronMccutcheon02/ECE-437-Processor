@@ -11,6 +11,7 @@
 `include "execute_if.vh"
 `include "memory_if.vh"
 `include "writeback_if.vh"
+`include "hazard_unit_if.vh"
 
 `include "cpu_types_pkg.vh"
 `include "custom_types_pkg.vh"
@@ -36,12 +37,16 @@ module datapath (
 	memory_if mmif();
 	writeback_if wbif();
 
+  hazard_unit_if huif();
+
 	// DUT
 	fetch_stage FT(CLK, nRST, ftif);
 	decode_stage DC(CLK, nRST, dcif);
 	execute_stage EX(CLK, nRST, exif);
 	memory_stage MM(CLK, nRST, mmif);
 	writeback_stage WB(wbif);
+
+  hazard_unit HU(huif);
 
   //Local Variables
   logic [3:0] flush, freeze;
@@ -76,9 +81,17 @@ module datapath (
   //*******************************************\\
 //
 
-//Hazard unit
+// Hazard unit
+  always_comb begin: hazard_unit
+    huif.memread_dc = dcif.decode_p.dREN;
+    huif.Rt_dc = dcif.decode_p.Rt;
+    huif.Rs_ft = ftif.fetch_p.imemload[25:21];
+    huif.Rt_ft = ftif.fetch_p.imemload[20:16];
+    flush = huif.flush;
+    freeze = huif.freeze;
+  end
 
-//Forwarding Unit
+// Forwarding Unit
 
 //Pipeline Data passages
   always_comb begin : fetch_to_decode
@@ -106,7 +119,6 @@ module datapath (
 
 //Pipeline Flush/Freeze routing
   always_comb begin
-    flush = 4'd0;
     ftif.flush = flush[0];
     dcif.flush = flush[1];
     exif.flush = flush[2];
@@ -114,7 +126,6 @@ module datapath (
   end
 
   always_comb begin
-    freeze = 4'd0;
     ftif.freeze = freeze[0];
     dcif.freeze = freeze[1];
     exif.freeze = freeze[2];

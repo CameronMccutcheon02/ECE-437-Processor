@@ -95,6 +95,7 @@ module decode_stage(
 //Block output signal routings
     //*******************************************\\
     always_comb begin
+		decode.Rt = rt;
 		//Execute Layer
 		decode.ALUctr = cuif.ALUctr;
 		decode.ALUSrc = cuif.ALUSrc;
@@ -117,9 +118,9 @@ module decode_stage(
 		//data signals
 		decode.port_a = rfif.rdat1;
 		decode.port_b = rfif.rdat2;
-		if (cuif.ExtOP == 1)
+		if (cuif.ExtOP == 2'd1)
 			Imm_Ext = {{16{imm[15]}}, imm};
-		else if (cuif.ExtOP == 2)
+		else if (cuif.ExtOP == 2'd0)
 			Imm_Ext = {16'h0000, imm};
 		else 
 			Imm_Ext = {imm, 16'h0000};

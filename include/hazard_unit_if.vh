@@ -6,17 +6,20 @@
 interface hazard_unit_if;
     import cpu_types_pkg::*;
 
-    logic [1:0] flush;
-    logic freeze;
-    logic memread_de, pc_en;
-    word_t Rt_de, Rs_fd, Rt_fd;
+    logic [3:0] flush;
+    logic [3:0] freeze;
+    logic memread_dc, pc_en;
+    word_t Rt_dc, Rs_ft, Rt_ft;
 
     modport hu (
-        input memread_de, Rt_de, Rs_fd, Rt_fd,
+        input memread_dc, Rt_dc, Rs_ft, Rt_ft,
         output flush, freeze
     );
 
     modport tb (
         input flush, freeze,
-        output memread_de, Rt_de, Rs_fd, Rt_fd
+        output memread_dc, Rt_dc, Rs_ft, Rt_ft
     );
+
+endinterface
+`endif

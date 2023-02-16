@@ -20,6 +20,7 @@ package custom_types_pkg;
     }   fetch_t;
 
     typedef struct packed{
+        word_t Rt;
         //Execute Layer
         aluop_t ALUctr;
         logic ALUSrc;
