@@ -84,6 +84,7 @@ module datapath (
 // Hazard unit
   always_comb begin: hazard_unit
     huif.memread_dc = dcif.decode_p.dREN;
+    huif.memread_ex = exif.execute_p.dREN;
     huif.Rt_dc = dcif.decode_p.Rt;
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
