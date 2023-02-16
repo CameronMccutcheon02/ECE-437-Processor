@@ -14,6 +14,7 @@ module hazard_unit (
             if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
                 huif.flush = 4'b0100; // flush decode/execute latch if load dependency
                 huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency
+            // TODO: PASS IN MEMREAD FROM EX LATCH FOR IF STATEMENT FIRST
             end else if ((huif.Rt_ex == huif.Rs_ft) | (huif.Rt_ex == huif.Rt_ft)) begin // rt in mem == rs or rt in fetch 
                 huif.flush = 4'b0100;
                 huif.freeze = 4'b1000;
