@@ -28,10 +28,18 @@ module hazard_unit (
             huif.flush = 4'b1000; // flush fetch/decode latch if jump
 
         // remove for forwarding
-        if (huif.Rs_ft == huif.Rd_dc | huif.Rs_ft == huif.Rt_dc |
-            huif.Rt_ft == huif.Rd_dc | huif.Rt_ft == huif.Rt_dc |
-            huif.Rs_ft == huif.Rd_ex | huif.Rs_ft == huif.Rt_ex |
-            huif.Rt_ft == huif.Rd_dc | huif.Rt_ft == huif.Rt_ex)
-            huif.freeze = 4'b1000;
+        if ((huif.Rs_ft == huif.Rd_dc & huif.Rd_dc != 0) |
+            (huif.Rs_ft == huif.Rt_dc & huif.Rt_dc != 0) |
+            (huif.Rt_ft == huif.Rd_dc & huif.Rd_dc != 0) |
+            (huif.Rt_ft == huif.Rt_dc & huif.Rt_dc != 0) |
+
+            (huif.Rs_ft == huif.Rd_ex & huif.Rd_ex != 0) |
+            (huif.Rs_ft == huif.Rt_ex & huif.Rt_ex != 0)|
+            (huif.Rt_ft == huif.Rd_ex & huif.Rd_ex != 0) |
+            (huif.Rt_ft == huif.Rt_ex & huif.Rt_ex != 0)
+            )begin
+                    huif.freeze = 4'b1000;
+                    huif.flush = 4'b0100;
+            end
     end
 endmodule

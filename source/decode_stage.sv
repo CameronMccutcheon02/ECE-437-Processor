@@ -40,7 +40,7 @@ module decode_stage(
 	always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
 		if (~nRST)
 			dcif.decode_p <= '0;
-		else if (dcif.flush)
+		else if (dcif.flush & dcif.ihit)
 			dcif.decode_p <= '0;
 		else if (dcif.freeze)
 			dcif.decode_p <= dcif.decode_p;
