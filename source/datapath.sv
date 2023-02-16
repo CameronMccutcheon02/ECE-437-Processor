@@ -85,17 +85,31 @@ module datapath (
   always_comb begin: hazard_unit
     huif.memread_dc = dcif.decode_p.dREN;
     huif.memread_ex = exif.execute_p.dREN;
-    huif.Rt_dc = dcif.decode_p.Rt;
-    huif.Rs_ft = ftif.fetch_p.imemload[25:21];
+    //Rt's
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
+    huif.Rt_dc = dcif.decode_p.Rt;
     huif.Rt_ex = exif.execute_p.Rt;
+
+    //Rd's
+    huif.Rd_dc = dcif.decode_p.Rd;
+    huif.Rd_ex = exif.execute_p.Rd;
+
+    //Rs's
+    huif.Rs_ft = ftif.fetch_p.imemload[25:21];
+    
     huif.JumpSel = dcif.JumpSel;
     huif.BranchTaken = dcif.BranchTaken;
     flush = huif.flush;
     freeze = huif.freeze;
   end
 
+//
+
 // Forwarding Unit
+
+
+
+//
 
 //Pipeline Data passages
   always_comb begin : fetch_to_decode

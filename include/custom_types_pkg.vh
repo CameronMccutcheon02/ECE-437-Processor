@@ -19,8 +19,9 @@ package custom_types_pkg;
     }   fetch_t;
 
     typedef struct packed{
-        // hazard unit
+        // hazard unit/Forwarding
         word_t Rt;
+        word_t Rd;
 
         //Execute Layer
         aluop_t ALUctr;
@@ -49,8 +50,9 @@ package custom_types_pkg;
 
 
     typedef struct packed {   
-        //hazard unit
+        // hazard unit/Forwarding
         word_t Rt;
+        word_t Rd;
          
         //Mem Layer
         logic dREN;
@@ -78,7 +80,11 @@ package custom_types_pkg;
 
 
 
-    typedef struct packed{    
+    typedef struct packed{   
+        // hazard unit/Forwarding
+        word_t Rt;
+        word_t Rd; 
+
         //WB Layer
         regbits_t Rw;
         logic RegWEN;
@@ -95,6 +101,10 @@ package custom_types_pkg;
 
 
     typedef struct packed{
+        // hazard unit/Forwarding
+        word_t Rt;
+        word_t Rd;
+
         //WB Layer
         logic RegWEN;
         logic halt;

@@ -44,6 +44,10 @@ module memory_stage(
 //Block output signal routings
   //*******************************************\\
     always_comb begin
+        //Hazard unit/Forwarding unit stuffs
+		memory.Rt = mmif.execute_p.Rt;
+		memory.Rd = mmif.execute_p.Rd;
+
         //WB Layer
         memory.Rw = mmif.execute_p.Rw;
         memory.RegWEN = mmif.execute_p.RegWEN;

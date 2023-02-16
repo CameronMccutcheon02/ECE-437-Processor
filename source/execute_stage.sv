@@ -53,7 +53,10 @@ module execute_stage(
 //Block output signal routings
   //*******************************************\\
     always_comb begin
-        execute.Rt = exif.decode_p.Rt;
+        //Hazard unit/Forwarding unit stuffs
+		execute.Rt = exif.decode_p.Rt;
+		execute.Rd = exif.decode_p.Rd;
+
         //Mem Layer
         execute.dREN = exif.decode_p.dREN;
         execute.dWEN = exif.decode_p.dWEN;

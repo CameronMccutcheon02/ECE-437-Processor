@@ -95,7 +95,10 @@ module decode_stage(
 //Block output signal routings
     //*******************************************\\
     always_comb begin
+		//Hazard unit/Forwarding unit stuffs
 		decode.Rt = rt;
+		decode.Rd = rd;
+
 		//Execute Layer
 		decode.ALUctr = cuif.ALUctr;
 		decode.ALUSrc = cuif.ALUSrc;
