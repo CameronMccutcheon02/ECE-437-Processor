@@ -82,8 +82,13 @@ module execute_stage(
         
         //data signals
         execute.port_o = aluif.oport;
-        execute.port_a = exif.decode_p.port_a;
-        execute.port_b = exif.decode_p.port_b;
+        execute.port_a = (exif.port_a_forwarding_control == 2'd0) ? exif.decode_p.port_a :
+                            (exif.port_a_forwarding_control == 2'd1) ? exif.FW_execute_data : 
+                            (exif.port_a_forwarding_control == 2'd2) ? exif.FW_writeback_data : exif.decode_p.port_a;
+
+        execute.port_b =    (exif.port_b_forwarding_control == 2'd0) ? exif.decode_p.port_b :
+                            (exif.port_b_forwarding_control == 2'd1) ? exif.FW_execute_data : 
+                            (exif.port_b_forwarding_control == 2'd2) ? exif.FW_writeback_data : exif.decode_p.port_b;
         execute.Imm_Ext = exif.decode_p.Imm_Ext;
     end
   //*******************************************\\

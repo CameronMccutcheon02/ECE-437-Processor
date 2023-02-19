@@ -113,8 +113,10 @@ module decode_stage(
 		//decode.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
 
 		//WB Layer
-		decode.Rw = (cuif.jal) ? 5'd31 : (cuif.RegDst) ? rd : rt;
-		if (~cuif.RegWEN)
+		
+		if (cuif.RegWEN) 
+			decode.Rw = (cuif.jal) ? 5'd31 : (cuif.RegDst) ? rd : rt;
+		else if (~cuif.RegWEN)
 			decode.Rw = 5'd0;
 
 

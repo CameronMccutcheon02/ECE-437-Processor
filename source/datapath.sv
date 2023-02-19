@@ -118,7 +118,7 @@ module datapath (
 
     //Writeback Stage
     fwif.Rw_wb = wbif.writeback_p.Rw;
-    fwif.Rw_wb = wbif.writeback_p.port_w;
+    fwif.writeback_data_in = wbif.writeback_p.port_w;
 
     //Forwarding unit outputs
     exif.port_a_forwarding_control = fwif.port_a_control;
