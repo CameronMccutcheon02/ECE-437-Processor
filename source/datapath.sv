@@ -12,6 +12,7 @@
 `include "memory_if.vh"
 `include "writeback_if.vh"
 `include "hazard_unit_if.vh"
+`include "forwarding_unit_if.vh"
 
 `include "cpu_types_pkg.vh"
 `include "custom_types_pkg.vh"
@@ -38,6 +39,7 @@ module datapath (
 	writeback_if wbif();
 
   hazard_unit_if huif();
+  forwarding_unit_if fwif();
 
 	// DUT
 	fetch_stage FT(CLK, nRST, ftif);
@@ -47,6 +49,7 @@ module datapath (
 	writeback_stage WB(wbif);
 
   hazard_unit HU(huif);
+  forwarding_unit FU(fwif);
 
   //Local Variables
   logic [3:0] flush, freeze;
@@ -88,11 +91,9 @@ module datapath (
     //Rt's
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
     huif.Rt_dc = dcif.decode_p.Rt;
-    huif.Rt_ex = exif.execute_p.Rt;
 
     //Rd's
     huif.Rd_dc = dcif.decode_p.Rd;
-    huif.Rd_ex = exif.execute_p.Rd;
 
     //Rs's
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
@@ -106,7 +107,27 @@ module datapath (
 //
 
 // Forwarding Unit
+  always_comb begin
+    //Execute Stage
+    fwif.Rs_dc = dcif.decode_p.Rs;
+    fwif.Rt_dc = dcif.decode_p.Rt;
 
+    //Mem Stage 
+    fwif.Rw_ex = exif.execute_p.Rw; //grab from registered output of ex stage
+    fwif.execute_data_in = mmif.forwarding_unit_data;
+
+    //Writeback Stage
+    fwif.Rw_wb = wbif.writeback_p.Rw;
+    fwif.Rw_wb = wbif.writeback_p.port_w;
+
+    //Forwarding unit outputs
+    exif.port_a_forwarding_control = fwif.port_a_control;
+    exif.port_b_forwarding_control = fwif.port_b_control;
+
+    exif.FW_execute_data = fwif.execute_data_out;
+    exif.FW_writeback_data = fwif.writeback_data_out;
+
+  end
 
 
 //

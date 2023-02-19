@@ -41,11 +41,18 @@ module execute_stage(
   //*******************************************\\
     always_comb begin: ALU_Logic
         aluif.ALUOP = exif.decode_p.ALUctr;
-        aluif.porta = exif.decode_p.port_a;
+        aluif.porta = (exif.port_a_forwarding_control == 2'd0) ? exif.decode_p.port_a :
+                        (exif.port_a_forwarding_control == 2'd1) ? exif.FW_execute_data : 
+                        (exif.port_a_forwarding_control == 2'd2) ? exif.FW_writeback_data : exif.decode_p.port_a;
+
+
+
         if (~exif.decode_p.ALUSrc)
-            aluif.portb = exif.decode_p.port_b;
+            aluif.portb = (exif.port_b_forwarding_control == 2'd0) ? exif.decode_p.port_b :
+                            (exif.port_b_forwarding_control == 2'd1) ? exif.FW_execute_data : 
+                            (exif.port_b_forwarding_control == 2'd2) ? exif.FW_writeback_data : exif.decode_p.port_b;
         else 
-            aluif.portb = exif.decode_p.Imm_Ext;
+            aluif.portb = exif.decode_p.Imm_Ext; //always give priority to sign extended over forwarding unit
     end
   //*******************************************\\
 //
@@ -54,8 +61,8 @@ module execute_stage(
   //*******************************************\\
     always_comb begin
         //Hazard unit/Forwarding unit stuffs
-		execute.Rt = exif.decode_p.Rt;
-		execute.Rd = exif.decode_p.Rd;
+		// execute.Rt = exif.decode_p.Rt;
+		// execute.Rd = exif.decode_p.Rd;
 
         //Mem Layer
         execute.dREN = exif.decode_p.dREN;

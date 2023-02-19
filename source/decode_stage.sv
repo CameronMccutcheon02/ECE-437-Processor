@@ -114,6 +114,10 @@ module decode_stage(
 
 		//WB Layer
 		decode.Rw = (cuif.jal) ? 5'd31 : (cuif.RegDst) ? rd : rt;
+		if (~cuif.RegWEN)
+			decode.Rw = 5'd0;
+
+
 		decode.RegWEN = cuif.RegWEN;
 		decode.MemtoReg = cuif.MemtoReg;
 		decode.halt = cuif.halt;

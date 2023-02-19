@@ -52,8 +52,6 @@ package custom_types_pkg;
 
     typedef struct packed {   
         // hazard unit/Forwarding
-        regbits_t Rt;
-        regbits_t Rd;
          
         //Mem Layer
         logic dREN;
@@ -83,8 +81,6 @@ package custom_types_pkg;
 
     typedef struct packed{   
         // hazard unit/Forwarding
-        regbits_t Rt;
-        regbits_t Rd; 
 
         //WB Layer
         regbits_t Rw;
@@ -103,8 +99,6 @@ package custom_types_pkg;
 
     typedef struct packed{
         // hazard unit/Forwarding
-        regbits_t Rt;
-        regbits_t Rd;
 
         //WB Layer
         logic RegWEN;

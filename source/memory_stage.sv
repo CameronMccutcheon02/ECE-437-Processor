@@ -45,8 +45,8 @@ module memory_stage(
   //*******************************************\\
     always_comb begin
         //Hazard unit/Forwarding unit stuffs
-		memory.Rt = mmif.execute_p.Rt;
-		memory.Rd = mmif.execute_p.Rd;
+		// memory.Rt = mmif.execute_p.Rt;
+		// memory.Rd = mmif.execute_p.Rd;
 
         //WB Layer
         memory.Rw = mmif.execute_p.Rw;
@@ -59,6 +59,14 @@ module memory_stage(
         memory.port_o = mmif.execute_p.port_o;
         memory.dmemload = mmif.dmemload;
         memory.Imm_Ext = mmif.execute_p.Imm_Ext;
+
+
+        case (mmif.execute_p.MemtoReg)
+            2'd0: mmif.forwarding_unit_data = mmif.execute_p.port_o;
+            2'd1: mmif.forwarding_unit_data = mmif.execute_p.NPC;
+            2'd2: mmif.forwarding_unit_data = 32'd0;
+            2'd3: mmif.forwarding_unit_data = mmif.execute_p.Imm_Ext;
+        endcase 
     end
   //*******************************************\\
 //

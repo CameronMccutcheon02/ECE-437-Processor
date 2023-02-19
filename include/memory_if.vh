@@ -16,9 +16,12 @@ interface memory_if;
     memory_t memory_p;
     word_t dmemaddr, dmemstore;
     logic dmemREN, dmemWEN;
+
+    word_t forwarding_unit_data;
     
     modport MEM (
         input ihit, dhit, flush, freeze, execute_p, dmemload,
+        output forwarding_unit_data,
         output memory_p, dmemaddr, dmemstore, dmemREN, dmemWEN
     );
 
