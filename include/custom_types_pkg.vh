@@ -22,6 +22,7 @@ package custom_types_pkg;
         // hazard unit/Forwarding
         regbits_t Rt;
         regbits_t Rd;
+        regbits_t Rs;
 
         //Execute Layer
         aluop_t ALUctr;

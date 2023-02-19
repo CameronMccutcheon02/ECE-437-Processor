@@ -98,6 +98,7 @@ module decode_stage(
 		//Hazard unit/Forwarding unit stuffs
 		decode.Rt = rt;
 		decode.Rd = rd;
+		decode.Rs = rs;
 
 		//Execute Layer
 		decode.ALUctr = cuif.ALUctr;
