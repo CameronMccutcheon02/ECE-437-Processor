@@ -60,7 +60,11 @@ module memory_stage(
         memory.dmemload = mmif.dmemload;
         memory.Imm_Ext = mmif.execute_p.Imm_Ext;
 
-
+        //branch evaluation
+        mmif.BranchAddr = mmif.execute_p.NPC + {mmif.execute_p.Imm_Ext[29:0],2'b00};
+        mmif.JumpAddr = {mmif.execute_p.NPC[31:28], mmif.execute_p.Instruction[25:0], 2'b00};
+        mmif.port_a = mmif.execute_p.port_a;
+        
         case (mmif.execute_p.MemtoReg)
             2'd0: mmif.forwarding_unit_data = mmif.execute_p.port_o;
             2'd1: mmif.forwarding_unit_data = mmif.execute_p.NPC;

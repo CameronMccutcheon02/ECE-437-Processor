@@ -10,7 +10,6 @@ interface fetch_if;
     //Inputs to stage
     logic ihit, dhit, flush, freeze;
     word_t imemload;
-    //execute_t execute_p;
 
     //Outputs of stage
     fetch_t fetch_p;
@@ -23,7 +22,7 @@ interface fetch_if;
     word_t port_a;
     
     modport FT (
-        input ihit, dhit, flush, freeze, imemload, BranchTaken, BranchAddr, JumpSel, JumpAddr, port_a,//execute_p,
+        input ihit, dhit, flush, freeze, imemload, BranchTaken, BranchAddr, JumpSel, JumpAddr, port_a,
         output fetch_p, imemREN, imemaddr
     );
 

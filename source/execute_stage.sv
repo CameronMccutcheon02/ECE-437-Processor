@@ -67,11 +67,11 @@ module execute_stage(
         //Mem Layer
         execute.dREN = exif.decode_p.dREN;
         execute.dWEN = exif.decode_p.dWEN;
-        //execute.BEQ = exif.decode_p.BEQ;
-        //execute.BNE = exif.decode_p.BNE;
-        //execute.JumpSel = exif.decode_p.JumpSel;
-        //execute.JumpAddr = exif.decode_p.JumpAddr;
-        //execute.zero = aluif.zero;
+        execute.BEQ = exif.decode_p.BEQ;
+        execute.BNE = exif.decode_p.BNE;
+        execute.JumpSel = exif.decode_p.JumpSel;
+        execute.JumpAddr = exif.decode_p.JumpAddr;
+        execute.zero = aluif.zero;
 
         //WB Layer
         execute.Rw = exif.decode_p.Rw;

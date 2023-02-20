@@ -139,12 +139,10 @@ module datapath (
   end
 
   always_comb begin : in_fetch
-    //ftif.execute_p = exif.execute_p;
-    ftif.BranchTaken = dcif.BranchTaken;
-    ftif.BranchAddr = dcif.BranchAddr;
-    ftif.JumpSel = dcif.JumpSel;
-    ftif.JumpAddr = dcif.JumpAddr;
-    ftif.port_a = dcif.porta;
+    ftif.BranchAddr = mmif.BranchAddr;
+    ftif.JumpSel = mmif.JumpSel;
+    ftif.JumpAddr = mmif.JumpAddr;
+    ftif.port_a = mmif.port_a;
   end
 
   always_comb begin : Decode_to_Execute

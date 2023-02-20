@@ -96,12 +96,18 @@ add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/memrea
 add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/Rt_dc
 add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/Rs_ft
 add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/Rt_ft
-add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/Rt_ex
-add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/BEQ
-add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/BNE
-add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/zero
 add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/JumpSel
 add wave -noupdate -group Datapath -group huif /system_tb/DUT/CPU/DP/huif/BranchTaken
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/Rs_dc
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/Rt_dc
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/Rw_ex
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/execute_data_in
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/Rw_wb
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/writeback_data_in
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/execute_data_out
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/writeback_data_out
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/port_a_control
+add wave -noupdate -group Datapath -group fwif /system_tb/DUT/CPU/DP/FU/fwif/port_b_control
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/halt
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/ihit
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/imemREN
@@ -114,8 +120,9 @@ add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/flushed
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/dmemload
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/dmemstore
 add wave -noupdate -group Datapath /system_tb/DUT/CPU/DP/dpif/dmemaddr
+add wave -noupdate /system_tb/DUT/CPU/DP/DC/RF/registers
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors {{Cursor 1} {556709 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -131,4 +138,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {1310523050 ps} {1311404050 ps}
+WaveRestoreZoom {0 ps} {881 ns}
