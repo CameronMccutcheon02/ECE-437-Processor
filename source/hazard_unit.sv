@@ -12,7 +12,7 @@ module hazard_unit (
         huif.freeze = 4'b0;
         if (huif.memread_dc) begin
             if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
-                huif.flush = 4'b0110; // flush decode/execute latch if load dependency
+                huif.flush = 4'b0100; // flush decode/execute latch if load dependency
                 huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency
             end
         end
@@ -23,9 +23,9 @@ module hazard_unit (
         //     end
         // end
         if (huif.JumpSel == 2'b0 & huif.BranchTaken)
-            huif.flush = 4'b1100; // flush fetch/decode latch if branch taken
+            huif.flush = 4'b1110; // flush fetch/decode latch if branch taken
         if (huif.JumpSel == 2'd1 | huif.JumpSel == 2'd2)
-            huif.flush = 4'b1100; // flush fetch/decode latch if jump
+            huif.flush = 4'b1110; // flush fetch/decode latch if jump
 
         // // remove for forwarding
         // if ((huif.Rs_ft == huif.Rd_dc & huif.Rd_dc != 0) |

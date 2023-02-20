@@ -17,6 +17,9 @@ module memory_stage(
     // initialize structs
     memory_t memory;
 
+    word_t next_dmemload;
+
+
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
             mmif.memory_p <= '0;
@@ -24,10 +27,19 @@ module memory_stage(
             mmif.memory_p <= '0;
         else if (mmif.freeze)
             mmif.memory_p <= mmif.memory_p;
-        else if (mmif.ihit | mmif.dhit)
+        else if (mmif.ihit)
             mmif.memory_p <= memory;
         else 
             mmif.memory_p <= mmif.memory_p;
+    end
+
+    always_ff @(posedge CLK, negedge nRST) begin: dmemloadLatching
+        if (~nRST)
+            memory.dmemload <= '0;
+        else if (mmif.dhit)
+            memory.dmemload <= next_dmemload;
+        else
+            memory.dmemload <= memory.dmemload;
     end
 
 //To data Memory
@@ -57,14 +69,18 @@ module memory_stage(
         
         //data signals
         memory.port_o = mmif.execute_p.port_o;
-        memory.dmemload = mmif.dmemload;
+        next_dmemload = mmif.dmemload;
         memory.Imm_Ext = mmif.execute_p.Imm_Ext;
 
         //branch evaluation
         mmif.BranchAddr = mmif.execute_p.NPC + {mmif.execute_p.Imm_Ext[29:0],2'b00};
+        mmif.JumpSel = mmif.execute_p.JumpSel;
         mmif.JumpAddr = {mmif.execute_p.NPC[31:28], mmif.execute_p.Instruction[25:0], 2'b00};
         mmif.port_a = mmif.execute_p.port_a;
-        
+        mmif.BranchTaken = 1'b0;
+        if (mmif.execute_p.BEQ & mmif.execute_p.zero | mmif.execute_p.BNE & ~mmif.execute_p.zero)
+            mmif.BranchTaken = 1'b1;
+            
         case (mmif.execute_p.MemtoReg)
             2'd0: mmif.forwarding_unit_data = mmif.execute_p.port_o;
             2'd1: mmif.forwarding_unit_data = mmif.execute_p.NPC;

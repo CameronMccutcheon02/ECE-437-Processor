@@ -27,7 +27,7 @@ module execute_stage(
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
             exif.execute_p <= '0;
-        else if (exif.flush | exif.dhit)
+        else if (exif.flush)
             exif.execute_p <= '0;
         else if (exif.freeze)
             exif.execute_p <= exif.execute_p;
@@ -35,6 +35,15 @@ module execute_stage(
             exif.execute_p <= execute;
         else 
             exif.execute_p <= exif.execute_p;
+    end
+
+    always_ff @(posedge CLK, negedge nRST) begin: LoadPassthroughLogic
+        if (~nRST)
+            exif.execute_p <= '0;
+        else if (exif.dhit) begin
+            exif.execute_p.dREN <= execute.dREN;
+            exif.execute_p.dWEN <= execute.dWEN;
+        end
     end
 
 //ALU
@@ -72,6 +81,11 @@ module execute_stage(
         execute.JumpSel = exif.decode_p.JumpSel;
         execute.JumpAddr = exif.decode_p.JumpAddr;
         execute.zero = aluif.zero;
+        execute.Instruction = exif.decode_p.Instruction;
+        if (exif.dhit) begin
+            execute.dREN = 1'b0;
+            execute.dWEN = 1'b0;
+        end
 
         //WB Layer
         execute.Rw = exif.decode_p.Rw;

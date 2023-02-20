@@ -98,8 +98,8 @@ module datapath (
     //Rs's
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
     
-    huif.JumpSel = dcif.JumpSel;
-    huif.BranchTaken = dcif.BranchTaken;
+    huif.JumpSel = mmif.JumpSel;
+    huif.BranchTaken = mmif.BranchTaken;
     flush = huif.flush;
     freeze = huif.freeze;
   end
@@ -139,6 +139,7 @@ module datapath (
   end
 
   always_comb begin : in_fetch
+    ftif.BranchTaken = mmif.BranchTaken;
     ftif.BranchAddr = mmif.BranchAddr;
     ftif.JumpSel = mmif.JumpSel;
     ftif.JumpAddr = mmif.JumpAddr;

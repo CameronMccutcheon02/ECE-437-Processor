@@ -17,7 +17,8 @@ interface memory_if;
     word_t dmemaddr, dmemstore;
     logic dmemREN, dmemWEN;
     word_t BranchAddr, JumpAddr, port_a;
-    logic JumpSel;
+    logic [1:0] JumpSel;
+    logic BranchTaken;
 
     word_t forwarding_unit_data;
     
@@ -25,7 +26,7 @@ interface memory_if;
         input ihit, dhit, flush, freeze, execute_p, dmemload,
         output forwarding_unit_data,
         output memory_p, dmemaddr, dmemstore, dmemREN, dmemWEN,
-        output BranchAddr, JumpSel, JumpAddr, port_a
+        output BranchAddr, BranchTaken, JumpSel, JumpAddr, port_a
     );
 
 endinterface
