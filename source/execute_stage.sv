@@ -67,6 +67,7 @@ module execute_stage(
         //Mem Layer
         execute.dREN = exif.decode_p.dREN;
         execute.dWEN = exif.decode_p.dWEN;
+        execute.PC = exif.decode_p.PC;
         //execute.BEQ = exif.decode_p.BEQ;
         //execute.BNE = exif.decode_p.BNE;
         //execute.JumpSel = exif.decode_p.JumpSel;

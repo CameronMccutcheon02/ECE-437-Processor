@@ -16,6 +16,7 @@ package custom_types_pkg;
     typedef struct packed{
         word_t  imemload; 
         word_t  NPC;
+        word_t  PC;
     }   fetch_t;
 
     typedef struct packed{
@@ -31,6 +32,7 @@ package custom_types_pkg;
         //Mem Layer
         logic dREN;
         logic dWEN;
+        logic PC; //for branch predictor table logics
         //logic BEQ;
         //logic BNE;
         //logic [1:0] JumpSel;
@@ -56,6 +58,7 @@ package custom_types_pkg;
         //Mem Layer
         logic dREN;
         logic dWEN;
+        logic PC;
         //logic BEQ;
         //logic BNE;
         //logic zero;

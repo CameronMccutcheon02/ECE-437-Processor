@@ -107,6 +107,7 @@ module decode_stage(
 		//Mem Layer
 		decode.dREN = cuif.dREN;
 		decode.dWEN = cuif.dWEN;
+		decode.PC = dcif.fetch_p.PC;
 		//decode.BEQ = cuif.BEQ;
 		//decode.BNE = cuif.BNE;
 		//decode.JumpSel = cuif.JumpSel;
