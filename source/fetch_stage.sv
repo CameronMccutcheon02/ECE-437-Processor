@@ -67,6 +67,7 @@ module fetch_stage(
         // Fetch stage outputs
         fetch.imemload = ftif.imemload;
         fetch.NPC = pcif.next_PC;
+        fetch.PC = pcif.PC; //Cam- for branch predictor table
         
         // Output to datapath-cache interface
         ftif.imemREN = 1'b1; 

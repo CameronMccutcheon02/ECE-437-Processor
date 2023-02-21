@@ -16,6 +16,7 @@ package custom_types_pkg;
     typedef struct packed{
         word_t  imemload; 
         word_t  NPC;
+        word_t  PC;
     }   fetch_t;
 
     typedef struct packed{
