@@ -55,6 +55,7 @@ is_inner:
   sw    $t7, 0($t9)
   addiu $t9, $t9, -4
   j     is_inner
+  
 is_inner_end:
   sw    $t8, 0($t9)
   addiu $t0, $t0, 4
@@ -62,6 +63,7 @@ is_inner_end:
 is_end:
   jr    $ra
 #--------------------------------------
+halt
 
 #void merge(int* $a0, int $a1, int* $a2, int $a3, int* dst)
 # $a0 : pointer to list 1
@@ -118,7 +120,7 @@ m_end:
 
 org 0x300
 size:
-cfw 64
+cfw 10
 data:
 cfw 90
 cfw 81

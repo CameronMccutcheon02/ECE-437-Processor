@@ -46,7 +46,7 @@ module memory_stage(
   //*******************************************\\
     always_comb begin
         mmif.dmemREN = mmif.execute_p.dREN;
-        mmif.dmemWEN = mmif.execute_p.dWEN;
+        mmif.dmemWEN = (mmif.execute_p.halt) ? 0 : mmif.execute_p.dWEN;
         mmif.dmemstore = mmif.execute_p.port_b;
         mmif.dmemaddr = mmif.execute_p.port_o;
     end
