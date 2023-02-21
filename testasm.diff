@@ -8,3 +8,29 @@ processing file asmFiles/test.branchjump1.asm (6 of 18)
 processing file asmFiles/test.halt.asm (7 of 18)
 processing file asmFiles/test.hazard_data.asm (8 of 18)
 processing file asmFiles/test.hazard_jump.asm (9 of 18)
+processing file asmFiles/test.allcommands.asm (1 of 18)
+processing file asmFiles/test.beq_nt.asm (2 of 18)
+processing file asmFiles/test.beq_t.asm (3 of 18)
+processing file asmFiles/test.bne_nt.asm (4 of 18)
+processing file asmFiles/test.bne_t.asm (5 of 18)
+processing file asmFiles/test.branchjump1.asm (6 of 18)
+processing file asmFiles/test.halt.asm (7 of 18)
+processing file asmFiles/test.hazard_data.asm (8 of 18)
+processing file asmFiles/test.hazard_jump.asm (9 of 18)
+processing file asmFiles/test.hazard_load.asm (10 of 18)
+--- memsim.hex	2023-02-20 19:05:14.354676994 -0500
++++ memcpu.hex	2023-02-20 19:05:14.258673397 -0500
+@@ -7,4 +7,5 @@
+ :04001A00AC0700FF30
+ :04001E00FFFFFFFFE2
+ :04003C000000ABCD48
++:04003F000000ABCD45
+ :00000001FF
+processing file asmFiles/test.jal.asm (11 of 18)
+processing file asmFiles/test.j.asm (12 of 18)
+processing file asmFiles/test.jr.asm (13 of 18)
+processing file asmFiles/test.jump.asm (14 of 18)
+processing file asmFiles/test.ldst1.asm (15 of 18)
+processing file asmFiles/test.ldst2.asm (16 of 18)
+processing file asmFiles/test.loadstore.asm (17 of 18)
+processing file asmFiles/test.rtype.asm (18 of 18)
