@@ -8,7 +8,11 @@ ori $2, $0, 0x0BAD
 sw $2, 0($1)
 HALT
 
-Jloc:
+Jloc2:
 ori $2, $0, 0xf0f0
 sw $2, 0($1)
+HALT
+
+Jloc:
+J Jloc2
 HALT
