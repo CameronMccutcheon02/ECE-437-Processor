@@ -12,6 +12,7 @@ README
 .deps
 *.hex
 *.ver
+*.diff
 
 # Work directory files
 *.qdb
