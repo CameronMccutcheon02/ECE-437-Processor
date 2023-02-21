@@ -1,2 +1,10 @@
-processing file asmFiles/test.hazard_load.asm (1 of 1)
-processing file asmFiles/test.jump.asm (1 of 1)
+processing file asmFiles/test.hazard_jump.asm (1 of 1)
+--- memsim.hex	2023-02-20 20:32:56.302815776 -0500
++++ memcpu.hex	2023-02-20 20:32:56.201811991 -0500
+@@ -13,4 +13,6 @@
+ :04000C00AC070FF03E
+ :04000D00FFFFFFFFF3
+ :04003C000000ABC055
++:0402FC000000ABC093
++:04033C000000ABC052
+ :00000001FF
