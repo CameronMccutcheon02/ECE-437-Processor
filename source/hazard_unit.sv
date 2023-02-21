@@ -10,12 +10,6 @@ module hazard_unit (
     always_comb begin: Ld_use_Hazard_Logic
         huif.flush = 4'b0;
         huif.freeze = 4'b0;
-        if (huif.memread_dc) begin
-            if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
-                huif.flush = 4'b0100; // flush decode/execute latch if load dependency
-                huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency
-            end
-        end
         // if (huif.memread_ex) begin // remove for forwarding
         //     if ((huif.Rt_ex == huif.Rs_ft) | (huif.Rt_ex == huif.Rt_ft)) begin // rt in mem == rs or rt in fetch 
         //         huif.flush = 4'b0100; // flush decode/execute latch if load dependency
@@ -24,8 +18,15 @@ module hazard_unit (
         // end
         if (huif.JumpSel == 2'b0 & huif.BranchTaken)
             huif.flush = 4'b1110; // flush fetch/decode latch if branch taken
-        if (huif.JumpSel == 2'd1 | huif.JumpSel == 2'd2)
+        else if (huif.JumpSel == 2'd1 | huif.JumpSel == 2'd2)
             huif.flush = 4'b1110; // flush fetch/decode latch if jump
+
+        else if (huif.memread_dc) begin
+            if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
+                huif.flush = 4'b0100; // flush decode/execute latch if load dependency
+                huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency
+            end
+        end
 
         // // remove for forwarding
         // if ((huif.Rs_ft == huif.Rd_dc & huif.Rd_dc != 0) |

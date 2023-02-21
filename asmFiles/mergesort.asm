@@ -63,7 +63,6 @@ is_inner_end:
 is_end:
   jr    $ra
 #--------------------------------------
-halt
 
 #void merge(int* $a0, int $a1, int* $a2, int $a3, int* dst)
 # $a0 : pointer to list 1
