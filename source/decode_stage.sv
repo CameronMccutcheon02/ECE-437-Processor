@@ -112,6 +112,8 @@ module decode_stage(
 		decode.JumpSel = cuif.JumpSel;
 		decode.JumpAddr = {dcif.fetch_p.NPC[31:28], Instruction[25:0], 2'b00};
 		decode.Instruction = Instruction;
+		decode.PC = dcif.fetch_p.PC;
+		decode.branch_taken = dcif.fetch_p.branch_taken;
 
 		//WB Layer
 		

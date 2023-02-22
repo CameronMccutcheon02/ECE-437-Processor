@@ -61,26 +61,32 @@ module memory_stage(
 		// memory.Rd = mmif.execute_p.Rd;
 
         //WB Layer
-        memory.Rw = mmif.execute_p.Rw;
-        memory.RegWEN = mmif.execute_p.RegWEN;
-        memory.MemtoReg = mmif.execute_p.MemtoReg;
-        memory.halt = mmif.execute_p.halt;
-        memory.NPC = mmif.execute_p.NPC;
+        memory.Rw   = mmif.execute_p.Rw;
+        memory.RegWEN   = mmif.execute_p.RegWEN;
+        memory.MemtoReg     = mmif.execute_p.MemtoReg;
+        memory.halt     = mmif.execute_p.halt;
+        memory.NPC  = mmif.execute_p.NPC;
         
         //data signals
-        memory.port_o = mmif.execute_p.port_o;
-        next_dmemload = mmif.dmemload;
-        memory.Imm_Ext = mmif.execute_p.Imm_Ext;
+        memory.port_o   = mmif.execute_p.port_o;
+        next_dmemload   = mmif.dmemload;
+        memory.Imm_Ext  = mmif.execute_p.Imm_Ext;
 
-        //branch evaluation
-        mmif.BranchAddr = mmif.execute_p.NPC + {mmif.execute_p.Imm_Ext[29:0],2'b00};
-        mmif.JumpSel = mmif.execute_p.JumpSel;
-        mmif.JumpAddr = {mmif.execute_p.NPC[31:28], mmif.execute_p.Instruction[25:0], 2'b00};
-        mmif.port_a = mmif.execute_p.port_a;
-        mmif.BranchTaken = 1'b0;
-        if (mmif.execute_p.BEQ & mmif.execute_p.zero | mmif.execute_p.BNE & ~mmif.execute_p.zero)
-            mmif.BranchTaken = 1'b1;
+        //branch evaluation output routing
+        mmif.BranchAddr     = mmif.execute_p.PC + signed'({mmif.execute_p.Imm_Ext[29:0],2'b00}) + 4;
+        mmif.JumpSel    = mmif.execute_p.JumpSel;
+        mmif.JumpAddr   = {mmif.execute_p.NPC[31:28], mmif.execute_p.Instruction[25:0], 2'b00};
+        mmif.port_a     = mmif.execute_p.port_a;
+        mmif.BranchTaken    = 1'b0;
+        if ((mmif.execute_p.BEQ & mmif.execute_p.zero) | (mmif.execute_p.BNE & ~mmif.execute_p.zero))
+            mmif.BranchTaken    = 1'b1;
+        mmif.branch_mispredict  = (mmif.execute_p.branch_taken != mmif.BranchTaken) && (mmif.execute_p.BEQ | mmif.execute_p.BNE);
+        mmif.PC     = mmif.execute_p.PC;
+
+
             
+
+        //Forwarding Unit signal
         case (mmif.execute_p.MemtoReg)
             2'd0: mmif.forwarding_unit_data = mmif.execute_p.port_o;
             2'd1: mmif.forwarding_unit_data = mmif.execute_p.NPC;

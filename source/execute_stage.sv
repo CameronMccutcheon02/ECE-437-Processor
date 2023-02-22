@@ -82,6 +82,8 @@ module execute_stage(
         execute.JumpAddr = exif.decode_p.JumpAddr;
         execute.zero = aluif.zero;
         execute.Instruction = exif.decode_p.Instruction;
+        execute.PC = exif.decode_p.PC;
+        execute.branch_taken = exif.decode_p.branch_taken;
         if (exif.dhit) begin
             execute.dREN = 1'b0;
             execute.dWEN = 1'b0;

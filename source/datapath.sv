@@ -99,7 +99,7 @@ module datapath (
     huif.Rs_ft = ftif.fetch_p.imemload[25:21];
     
     huif.JumpSel = mmif.JumpSel;
-    huif.BranchTaken = mmif.BranchTaken;
+    huif.branch_mispredict = mmif.branch_mispredict;
     flush = huif.flush;
     freeze = huif.freeze;
   end
@@ -139,11 +139,18 @@ module datapath (
   end
 
   always_comb begin : in_fetch
-    ftif.BranchTaken = mmif.BranchTaken;
-    ftif.BranchAddr = mmif.BranchAddr;
-    ftif.JumpSel = mmif.JumpSel;
+    //fetch branch/jump related inputs
+    ftif.BranchTaken  = mmif.BranchTaken;
+    ftif.BranchAddr   = mmif.BranchAddr;
+    ftif.JumpSel  = mmif.JumpSel;
     ftif.JumpAddr = mmif.JumpAddr;
-    ftif.port_a = mmif.port_a;
+    ftif.port_a   = mmif.port_a;
+    ftif.PC_mem   = mmif.execute_p.PC;
+    ftif.NPC_mem  = mmif.execute_p.NPC;
+    ftif.branch_mispredict = mmif.branch_mispredict;
+    ftif.BNE      = exif.execute_p.BNE;
+    ftif.BEQ      = exif.execute_p.BEQ;
+
   end
 
   always_comb begin : Decode_to_Execute

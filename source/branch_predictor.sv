@@ -41,19 +41,19 @@ module branch_predictor (
 always_comb begin
     br_pred_nxt = br_pred;
     if(bpif.branch_mispredict) begin
-        case (br_pred[PC_mem[12:2]])
-            2'b00: br_pred_nxt[PC_mem[12:2]] = 2'b01; //taken hard mispredict to taken soft
-            2'b01: br_pred_nxt[PC_mem[12:2]] = 2'b10; //taken soft mispredict to not taken hard
-            2'b10: br_pred_nxt[PC_mem[12:2]] = 2'b11; //not taken hard mispredict to not taken soft
-            2'b11: br_pred_nxt[PC_mem[12:2]] = 2'b00; //not taken soft mispredict to taken hard
+        case (br_pred[bpif.PC_mem[12:2]])
+            2'b00: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b01; //taken hard mispredict to taken soft
+            2'b01: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b10; //taken soft mispredict to not taken hard
+            2'b10: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b11; //not taken hard mispredict to not taken soft
+            2'b11: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b00; //not taken soft mispredict to taken hard
         endcase
     end
-    else if begin
-        case (br_pred[PC_mem[12:2]])
-            2'b00: br_pred_nxt[PC_mem[12:2]] = 2'b00; //taken hard predict to taken hard
-            2'b01: br_pred_nxt[PC_mem[12:2]] = 2'b00; //taken soft predict to taken hard
-            2'b10: br_pred_nxt[PC_mem[12:2]] = 2'b10; //not taken hard predict to not taken hard
-            2'b11: br_pred_nxt[PC_mem[12:2]] = 2'b10; //not taken soft predict to not taken hard
+    else begin
+        case (br_pred[bpif.PC_mem[12:2]])
+            2'b00: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b00; //taken hard predict to taken hard
+            2'b01: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b00; //taken soft predict to taken hard
+            2'b10: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b10; //not taken hard predict to not taken hard
+            2'b11: br_pred_nxt[bpif.PC_mem[12:2]] = 2'b10; //not taken soft predict to not taken hard
         endcase
     end
 end
@@ -62,19 +62,19 @@ end
 always_comb begin
     bpif.branch_taken = 1'b0;
     bpif.branch_target = 32'd0;
-    case(br_pred[PC_current[12:2]])
+    case(br_pred[bpif.PC_Current[12:2]])
         2'b00:  begin 
             //if we get a non-zero from the BTB table, send the target out
-            if (BTB[PC_current[12:2]] != 0) begin
+            if (BTB[bpif.PC_Current[12:2]] != 0) begin
                 bpif.branch_taken = 1'b1; 
-                bpif.branch_target = BTB[PC_Current[12:2]];
+                bpif.branch_target = BTB[bpif.PC_Current[12:2]];
             end
         end
         2'b01:  begin 
             //if we get a non-zero from the BTB table, send the target out
-            if (BTB[PC_current[12:2]] != 0) begin
+            if (BTB[bpif.PC_Current[12:2]] != 0) begin
                 bpif.branch_taken = 1'b1; 
-                bpif.branch_target = BTB[PC_Current[12:2]];
+                bpif.branch_target = BTB[bpif.PC_Current[12:2]];
             end
         end
         2'b10:  bpif.branch_taken = 1'b0;
@@ -86,8 +86,8 @@ end
 //BTB table updating logic
 always_comb begin
     BTB_nxt = BTB;
-    if((BTB[PC_mem[12:2]] != bpif.branch_target_mem) && (bpif.BEQ || bpif.BNE)) begin
-        BTB_nxt[PC_mem[12:2]] = bpif.branch_target_mem;
+    if((BTB[bpif.PC_mem[12:2]] != bpif.branch_addr_mem) && (bpif.BEQ || bpif.BNE)) begin
+        BTB_nxt[bpif.PC_mem[12:2]] = bpif.branch_addr_mem;
 
     end
 end

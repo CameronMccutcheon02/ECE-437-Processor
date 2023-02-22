@@ -16,7 +16,7 @@ module hazard_unit (
         //         huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency
         //     end
         // end
-        if (huif.JumpSel == 2'b0 & huif.BranchTaken)
+        if (huif.JumpSel == 2'b0 & huif.branch_mispredict)
             huif.flush = 4'b1110; // flush fetch/decode latch if branch taken
         else if (huif.JumpSel == 2'd1 | huif.JumpSel == 2'd2)
             huif.flush = 4'b1110; // flush fetch/decode latch if jump

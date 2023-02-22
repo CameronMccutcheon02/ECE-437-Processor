@@ -15,14 +15,21 @@ interface fetch_if;
     fetch_t fetch_p;
     logic imemREN;
     word_t imemaddr;
-    logic BranchTaken;
-    word_t BranchAddr;
-    logic [1:0] JumpSel;
-    word_t JumpAddr;
-    word_t port_a;
+
+    //Inputs from Mem
+    logic   BranchTaken;
+    word_t  BranchAddr;
+    logic   [1:0] JumpSel;
+    word_t  JumpAddr;
+    word_t  port_a;
+    word_t  PC_mem, NPC_mem;
+    logic   branch_mispredict;
+    logic   BNE, BEQ;
     
     modport FT (
-        input ihit, dhit, flush, freeze, imemload, BranchTaken, BranchAddr, JumpSel, JumpAddr, port_a,
+        input ihit, dhit, flush, freeze, imemload, 
+        input BranchTaken, BranchAddr, PC_mem, NPC_mem, branch_mispredict, BNE, BEQ,
+        input JumpSel, JumpAddr, port_a, 
         output fetch_p, imemREN, imemaddr
     );
 

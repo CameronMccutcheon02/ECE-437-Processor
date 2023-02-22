@@ -15,10 +15,10 @@ interface hazard_unit_if;
 
     logic BEQ, BNE, zero;
     logic [1:0] JumpSel;
-    logic BranchTaken;
+    logic branch_mispredict;
 
     modport hu (
-        input memread_dc, memread_ex, BranchTaken, JumpSel,
+        input memread_dc, memread_ex, branch_mispredict, JumpSel,
         input Rs_ft, //Rs's
         input Rt_dc, Rt_ex, Rt_ft, //Rt's
         input Rd_dc, Rd_ex, //Rd's
@@ -27,7 +27,7 @@ interface hazard_unit_if;
 
     modport tb (
         input flush, freeze,
-        output memread_dc, memread_ex, Rt_dc, Rs_ft, Rt_ft, Rt_ex, BranchTaken, JumpSel
+        output memread_dc, memread_ex, Rt_dc, Rs_ft, Rt_ft, Rt_ex, branch_mispredict, JumpSel
     );
 
 endinterface

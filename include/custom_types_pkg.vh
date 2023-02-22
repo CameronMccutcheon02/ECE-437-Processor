@@ -17,6 +17,7 @@ package custom_types_pkg;
         word_t  imemload; 
         word_t  NPC;
         word_t  PC;
+        logic   branch_taken;
     }   fetch_t;
 
     typedef struct packed{
@@ -37,6 +38,8 @@ package custom_types_pkg;
         logic [1:0] JumpSel;
         word_t JumpAddr;
         word_t Instruction;
+        logic branch_taken;
+        word_t  PC;
 
         //WB Layer
         regbits_t Rw;
@@ -56,14 +59,16 @@ package custom_types_pkg;
         // hazard unit/Forwarding
          
         //Mem Layer
-        logic dREN;
-        logic dWEN;
-        logic BEQ;
-        logic BNE;
-        logic zero;
-        logic [1:0] JumpSel;
-        word_t JumpAddr;
-        word_t Instruction;
+        logic   dREN;
+        logic   dWEN;
+        logic   BEQ;
+        logic   BNE;
+        logic   zero;
+        logic   [1:0] JumpSel;
+        word_t  JumpAddr;
+        word_t  Instruction;
+        logic   branch_taken;
+        word_t  PC;
 
         //WB Layer
         regbits_t Rw;

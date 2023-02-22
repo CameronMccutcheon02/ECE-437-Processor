@@ -8,11 +8,11 @@ interface branch_predictor_if;
     import custom_types_pkg::*;
 
     //Inputs to stage from inside fetch
-    word_t PC_current, NPC_current;
+    word_t PC_Current, NPC_current;
 
     //Inputs from memory/branch resolution stage
     word_t PC_mem, NPC_mem; //taken directly from pipeline
-    word_t branch_target_mem;
+    word_t branch_addr_mem;
     logic branch_mispredict;
     logic BEQ, BNE; //taken directly from pipeline
     
@@ -21,13 +21,10 @@ interface branch_predictor_if;
     logic branch_taken;
     word_t branch_target;
     
-    
-    //Outputs of stage
-    execute_t execute_p;
-    
     modport BP (
-        input PC_current, NPC_current,
-        input PC_mem, NPC_mem, branch_target_mem, branch_mispredict,
+        input PC_Current,
+        input PC_mem, branch_addr_mem, branch_mispredict, 
+        input BEQ, BNE,
         output branch_taken, branch_target
     );
 

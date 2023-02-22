@@ -20,9 +20,11 @@ module fetch_stage(
 
     // initialize interfaces
     program_counter_if pcif();
+    branch_predictor_if bpif();
 
     // initialize DUTs
     program_counter PC(CLK, nRST, pcif);
+    branch_predictor BP(CLK, nRST, bpif);
 
     // declare local variables
     word_t BranchAddr;
@@ -43,8 +45,10 @@ module fetch_stage(
 // Internal fetch logic
   //*******************************************\\
     always_comb begin: Local_Signals_Logic
-        if (ftif.BranchTaken)
-            BranchAddr = ftif.BranchAddr;
+        if (bpif.branch_taken)
+            BranchAddr = bpif.branch_target;
+        else if (ftif.branch_mispredict)
+            BranchAddr = (ftif.BranchTaken) ? ftif.BranchAddr : ftif.PC_mem + 4;
         else
             BranchAddr = pcif.PC + 32'd4;
     end
@@ -61,6 +65,21 @@ module fetch_stage(
   //*******************************************\\
 //
 
+
+//branch pred. signal routing
+//*******************************************\\
+    always_comb begin
+        bpif.PC_Current         = pcif.PC;
+        bpif.PC_mem             = ftif.PC_mem;
+        bpif.branch_addr_mem    = ftif.BranchAddr;
+        bpif.branch_mispredict  = ftif.branch_mispredict;
+        bpif.BEQ                = ftif.BEQ;
+        bpif.BNE                = ftif.BNE;
+
+    end
+  //*******************************************\\
+//
+
 // Block output signal routings
   //*******************************************\\
     always_comb begin
@@ -68,7 +87,7 @@ module fetch_stage(
         fetch.imemload = ftif.imemload;
         fetch.NPC = pcif.next_PC;
         fetch.PC = pcif.PC; //Cam- for branch predictor table
-        
+        fetch.branch_taken = bpif.branch_taken;
         // Output to datapath-cache interface
         ftif.imemREN = 1'b1; 
         ftif.imemaddr = pcif.PC; //NICK
