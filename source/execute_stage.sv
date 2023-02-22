@@ -27,7 +27,7 @@ module execute_stage(
     always_ff @(posedge CLK, negedge nRST) begin: PipelineLatching
         if (~nRST)
             exif.execute_p <= '0;
-        else if (exif.flush)
+        else if (exif.flush & exif.ihit)
             exif.execute_p <= '0;
         else if (exif.freeze)
             exif.execute_p <= exif.execute_p;
