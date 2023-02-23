@@ -5,6 +5,7 @@
 
 `include "cpu_types_pkg.vh"
 `include "custom_types_pkg.vh"
+`include "branch_predictor_if.vh"
 
 module fetch_stage(
     input logic CLK, nRST,
