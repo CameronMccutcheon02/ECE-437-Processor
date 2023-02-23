@@ -8,10 +8,10 @@ interface branch_predictor_if;
     import custom_types_pkg::*;
 
     //Inputs to stage from inside fetch
-    word_t PC_Current, NPC_current;
+    word_t PC_Current;
 
     //Inputs from memory/branch resolution stage
-    word_t PC_mem, NPC_mem; //taken directly from pipeline
+    word_t PC_mem; //taken directly from pipeline
     word_t branch_addr_mem;
     logic branch_mispredict;
     logic BEQ, BNE; //taken directly from pipeline

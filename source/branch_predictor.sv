@@ -25,17 +25,16 @@ module branch_predictor (
     logic [31:0] BTB [MEMSIZE -1:0];
     logic [31:0] BTB_nxt [MEMSIZE -1:0];
 
-    always_ff @(posedge CLK, negedge nRST) begin
-        if (~nRST) begin
-            for (int i = 0; i < MEMSIZE ; i++) begin
+    initial begin
+        for (int i = 0; i < MEMSIZE ; i++) begin
                 br_pred[i] <= 2'b00; //initialize all in taken hard
                 BTB[i] <= '0;
             end
-        end 
-        else begin
-            br_pred <=  br_pred_nxt;
-            BTB     <=  BTB_nxt;
-        end
+    end
+
+    always_ff @(posedge CLK) begin
+        br_pred <=  br_pred_nxt;
+        BTB     <=  BTB_nxt;
     end
 
 //br_pred_next logic
@@ -81,17 +80,19 @@ always_comb begin
         2'b10:  bpif.branch_taken = 1'b0;
         2'b11:  bpif.branch_taken = 1'b0;
     endcase
-end
 
-
-//BTB table updating logic
-always_comb begin
+    //BTB table updating logic
     BTB_nxt = BTB;
     if((BTB[bpif.PC_mem[ADDRSIZE:2]] != bpif.branch_addr_mem) && (bpif.BEQ || bpif.BNE)) begin
         BTB_nxt[bpif.PC_mem[ADDRSIZE:2]] = bpif.branch_addr_mem;
-
+        bpif.branch_taken = 1'b0; //if the branch addr from mem does not 
+        //match that in the table, use the address of the mem stage and flush
     end
 end
+
+
+
+
 
     
 
