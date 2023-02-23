@@ -73,7 +73,7 @@ module memory_stage(
         memory.Imm_Ext  = mmif.execute_p.Imm_Ext;
 
         //branch evaluation output routing
-        mmif.BranchAddr     = mmif.execute_p.PC + signed'({mmif.execute_p.Imm_Ext[29:0],2'b00}) + 4;
+        mmif.BranchAddr     =   mmif.execute_p.BranchAddr;
         mmif.JumpSel    = mmif.execute_p.JumpSel;
         mmif.JumpAddr   = {mmif.execute_p.NPC[31:28], mmif.execute_p.Instruction[25:0], 2'b00};
         mmif.port_a     = mmif.execute_p.port_a;
@@ -81,6 +81,10 @@ module memory_stage(
         if ((mmif.execute_p.BEQ & mmif.execute_p.zero) | (mmif.execute_p.BNE & ~mmif.execute_p.zero))
             mmif.BranchTaken    = 1'b1;
         mmif.branch_mispredict  = (mmif.execute_p.branch_taken != mmif.BranchTaken) && (mmif.execute_p.BEQ | mmif.execute_p.BNE);
+        if (mmif.execute_p.branch_taken && 
+            mmif.BranchAddr != mmif.execute_p.pred_branch_addr && 
+            (mmif.execute_p.BEQ | mmif.execute_p.BNE))
+            mmif.branch_mispredict = 1'b1; //if the branch address we predict does not match, flag the mispredict
         mmif.PC     = mmif.execute_p.PC;
 
 

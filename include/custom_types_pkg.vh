@@ -18,6 +18,7 @@ package custom_types_pkg;
         word_t  NPC;
         word_t  PC;
         logic   branch_taken;
+        word_t  pred_branch_addr;
     }   fetch_t;
 
     typedef struct packed{
@@ -40,6 +41,7 @@ package custom_types_pkg;
         word_t Instruction;
         logic branch_taken;
         word_t  PC;
+        word_t  pred_branch_addr;
 
         //WB Layer
         regbits_t Rw;
@@ -69,6 +71,8 @@ package custom_types_pkg;
         word_t  Instruction;
         logic   branch_taken;
         word_t  PC;
+        word_t  BranchAddr;
+        word_t  pred_branch_addr;
 
         //WB Layer
         regbits_t Rw;

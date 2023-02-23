@@ -114,6 +114,7 @@ module decode_stage(
 		decode.Instruction = Instruction;
 		decode.PC = dcif.fetch_p.PC;
 		decode.branch_taken = dcif.fetch_p.branch_taken;
+		decode.pred_branch_addr = dcif.fetch_p.pred_branch_addr;
 
 		//WB Layer
 		

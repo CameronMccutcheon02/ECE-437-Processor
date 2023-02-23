@@ -89,6 +89,7 @@ module fetch_stage(
         fetch.NPC = pcif.next_PC;
         fetch.PC = pcif.PC; //Cam- for branch predictor table
         fetch.branch_taken = bpif.branch_taken;
+        fetch.pred_branch_addr = bpif.branch_target;
         // Output to datapath-cache interface
         ftif.imemREN = 1'b1; 
         ftif.imemaddr = pcif.PC; //NICK

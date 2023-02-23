@@ -25,14 +25,15 @@ module branch_predictor (
     logic [31:0] BTB [MEMSIZE -1:0];
     logic [31:0] BTB_nxt [MEMSIZE -1:0];
 
+
     initial begin
         for (int i = 0; i < MEMSIZE ; i++) begin
-                br_pred[i] <= 2'b00; //initialize all in taken hard
-                BTB[i] <= '0;
+                br_pred[i] = 2'b00; //initialize all in taken hard
+                BTB[i] = '0;
             end
     end
 
-    always_ff @(posedge CLK) begin
+    always @(posedge CLK) begin
         br_pred <=  br_pred_nxt;
         BTB     <=  BTB_nxt;
     end
