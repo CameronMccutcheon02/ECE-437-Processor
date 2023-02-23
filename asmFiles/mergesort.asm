@@ -55,7 +55,6 @@ is_inner:
   sw    $t7, 0($t9)
   addiu $t9, $t9, -4
   j     is_inner
-  
 is_inner_end:
   sw    $t8, 0($t9)
   addiu $t0, $t0, 4
@@ -119,7 +118,7 @@ m_end:
 
 org 0x300
 size:
-cfw 10
+cfw 64
 data:
 cfw 90
 cfw 81
