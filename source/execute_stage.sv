@@ -33,17 +33,12 @@ module execute_stage(
             exif.execute_p <= exif.execute_p;
         else if (exif.ihit)
             exif.execute_p <= execute;
-        else 
-            exif.execute_p <= exif.execute_p;
-    end
-
-    always_ff @(posedge CLK, negedge nRST) begin: LoadPassthroughLogic
-        if (~nRST)
-            exif.execute_p <= '0;
         else if (exif.dhit) begin
-            exif.execute_p.dREN <= execute.dREN;
+            exif.execute_p <= exif.execute_p;
             exif.execute_p.dWEN <= execute.dWEN;
-        end
+            exif.execute_p.dREN <= execute.dREN;
+        end else
+            exif.execute_p <= exif.execute_p;
     end
 
 //ALU
