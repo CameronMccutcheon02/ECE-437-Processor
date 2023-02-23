@@ -81,6 +81,8 @@ module execute_stage(
         execute.branch_taken = exif.decode_p.branch_taken;
         execute.pred_branch_addr = exif.decode_p.pred_branch_addr;
         execute.BranchAddr = exif.decode_p.PC + signed'({exif.decode_p.Imm_Ext[29:0],2'b00}) + 4;
+        execute.emergency_flush = (execute.BranchAddr != exif.decode_p.pred_branch_addr);
+
         if (exif.dhit) begin
             execute.dREN = 1'b0;
             execute.dWEN = 1'b0;

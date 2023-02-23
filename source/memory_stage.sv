@@ -81,8 +81,9 @@ module memory_stage(
         if ((mmif.execute_p.BEQ & mmif.execute_p.zero) | (mmif.execute_p.BNE & ~mmif.execute_p.zero))
             mmif.BranchTaken    = 1'b1;
         mmif.branch_mispredict  = (mmif.execute_p.branch_taken != mmif.BranchTaken) && (mmif.execute_p.BEQ | mmif.execute_p.BNE);
+
         if (mmif.execute_p.branch_taken && 
-            mmif.BranchAddr != mmif.execute_p.pred_branch_addr && 
+            mmif.execute_p.emergency_flush && 
             (mmif.execute_p.BEQ | mmif.execute_p.BNE))
             mmif.branch_mispredict = 1'b1; //if the branch address we predict does not match, flag the mispredict
         mmif.PC     = mmif.execute_p.PC;

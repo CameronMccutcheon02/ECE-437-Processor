@@ -73,6 +73,7 @@ package custom_types_pkg;
         word_t  PC;
         word_t  BranchAddr;
         word_t  pred_branch_addr;
+        logic   emergency_flush;
 
         //WB Layer
         regbits_t Rw;
