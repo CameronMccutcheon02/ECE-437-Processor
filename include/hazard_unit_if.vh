@@ -16,6 +16,7 @@ interface hazard_unit_if;
     logic BEQ, BNE, zero;
     logic [1:0] JumpSel;
     logic branch_mispredict;
+    logic halt;
 
     modport hu (
         input memread_dc, memread_ex, branch_mispredict, JumpSel,

@@ -76,8 +76,8 @@ module datapath (
 	always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic
 		if (~nRST)
 			dpif.halt <= 1'b0;
-		else if (mmif.memory_p.halt)
-			dpif.halt <= mmif.memory_p.halt;
+		else if (exif.execute_p.halt)
+			dpif.halt <= exif.execute_p.halt;
 		else
 			dpif.halt <= 1'b0;
 	end
@@ -102,6 +102,7 @@ module datapath (
     huif.branch_mispredict = mmif.branch_mispredict;
     flush = huif.flush;
     freeze = huif.freeze;
+    huif.halt = exif.halt;
   end
 
 //

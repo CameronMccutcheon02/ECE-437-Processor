@@ -28,6 +28,11 @@ module hazard_unit (
             end
         end
 
+        else if(huif.halt) begin
+            huif.flush = 4'b1100; // flush decode/execute latch if load dependency
+            huif.freeze = 4'b1111; // freeze pc and fetch
+        end
+
         // // remove for forwarding
         // if ((huif.Rs_ft == huif.Rd_dc & huif.Rd_dc != 0) |
         //     (huif.Rs_ft == huif.Rt_dc & huif.Rt_dc != 0) |
