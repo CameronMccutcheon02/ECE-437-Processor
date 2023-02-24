@@ -10,7 +10,7 @@
 `include "decode_if.vh"
 `include "execute_if.vh"
 `include "memory_if.vh"
-`include "writeback_if.vh"
+`include "a_writeback_if.vh"
 `include "hazard_unit_if.vh"
 `include "forwarding_unit_if.vh"
 
@@ -36,7 +36,7 @@ module datapath (
 	decode_if dcif();
 	execute_if exif();
 	memory_if mmif();
-	writeback_if wbif();
+	a_writeback_if wbif();
 
   hazard_unit_if huif();
   forwarding_unit_if fwif();
@@ -46,7 +46,7 @@ module datapath (
 	decode_stage DC(CLK, nRST, dcif);
 	execute_stage EX(CLK, nRST, exif);
 	memory_stage MM(CLK, nRST, mmif);
-	writeback_stage WB(wbif);
+	a_writeback_stage WB(wbif);
 
   hazard_unit HU(huif);
   forwarding_unit FU(fwif);
@@ -102,7 +102,7 @@ module datapath (
     huif.branch_mispredict = mmif.branch_mispredict;
     flush = huif.flush;
     freeze = huif.freeze;
-    huif.halt = exif.halt;
+    huif.halt = exif.execute_p.halt;
   end
 
 //

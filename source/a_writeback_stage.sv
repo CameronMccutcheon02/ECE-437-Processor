@@ -3,10 +3,10 @@
 `include "cpu_types_pkg.vh"
 `include "custom_types_pkg.vh"
 
-`include "writeback_if.vh"
+`include "a_writeback_if.vh"
 
-module writeback_stage(
-    writeback_if.WB wbif
+module a_writeback_stage(
+    a_writeback_if.WB wbif
 );
 
     //grab all the structs values

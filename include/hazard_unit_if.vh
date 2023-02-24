@@ -23,6 +23,7 @@ interface hazard_unit_if;
         input Rs_ft, //Rs's
         input Rt_dc, Rt_ex, Rt_ft, //Rt's
         input Rd_dc, Rd_ex, //Rd's
+        input halt,
         output flush, freeze
     );
 
