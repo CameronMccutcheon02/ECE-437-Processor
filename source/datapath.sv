@@ -61,7 +61,7 @@ module datapath (
   //*******************************************\\
 	always_comb begin: Datapath_Logic
 		// instruction memory
-		dpif.imemREN = ftif.imemREN;
+		dpif.imemREN = ftif.imemREN && ~exif.execute_p.halt;
 		dpif.imemaddr = ftif.imemaddr;
 		ftif.imemload = dpif.imemload;
 
