@@ -46,10 +46,11 @@ module fetch_stage(
 // Internal fetch logic
   //*******************************************\\
     always_comb begin: Local_Signals_Logic
-        if (bpif.branch_taken)
-            BranchAddr = bpif.branch_target;
-        else if (ftif.branch_mispredict)
+        if (ftif.branch_mispredict)
             BranchAddr = (ftif.BranchTaken) ? ftif.BranchAddr : ftif.PC_mem + 4;
+        else if (bpif.branch_taken)
+            BranchAddr = bpif.branch_target;
+        
         else
             BranchAddr = pcif.PC + 32'd4;
     end
