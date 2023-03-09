@@ -24,7 +24,7 @@ module icache (
         word_t [BLKSZ-1:0] data;
     } frame_struct;
 
-    frame_struct [15:0] icache;
+    icache_frame [15:0] icache;
 
     logic [25:0] tag;
     logic [3:0] index;
@@ -36,7 +36,7 @@ module icache (
         if (~nRST) begin
             // initialize icahce to 0's
             icache <= '0;
-        end else if (~cif.iwait) begin
+        end else if (~cif.iwait & dcif.imemREN) begin
             // on ihit, load instruction into icache as well
             icache[index].valid <= 1'b1;
             icache[index].tag <= tag;
@@ -55,7 +55,7 @@ module icache (
         dcif.imemload = '0;
 
         // we only care about instruction fetches
-        if (dcif.imemREN & ~(dcif.dmemWEN | dcif.dmemREN)) begin
+        if (dcif.imemREN) begin
             if ((icache[index].tag == tag) & icache[index].valid) begin // if we have a valid hit, pass the block to datapath
                 // give datapath the instruction we have ready in icache
                 dcif.ihit = 1'b1;
