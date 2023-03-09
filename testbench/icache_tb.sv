@@ -9,7 +9,7 @@
 
 `timescale 1 ns / 10 ps
 
-module hazard_unit_tb;
+module icache_tb;
 
   parameter PERIOD = 10;
 
@@ -34,27 +34,41 @@ module hazard_unit_tb;
 
 endmodule
 
-task Async_Reset_DUT;
-begin
-
-end
-endtask
-
 program test(
     input logic CLK, nRST,
     datapath_cache_if.cache dcif,
     caches_if cif
 );
 
+task Async_Reset_DUT;
+begin
+  icache_tb.nRST = 0;
+
+  #(icache_tb.PERIOD);
+  #(icache_tb.PERIOD);
+
+  icache_tb.nRST = 1;
+
+  #(icache_tb.PERIOD);
+  #(icache_tb.PERIOD);
+end
+endtask
+
 task Reset_Input;
 begin
+  // FROM DATAPATH
+  dcif.halt = 0;
   dcif.imemREN = 1;
   dcif.dmemWEN = 0;
   dcif.dmemREN = 0;
 
-  cif.imemREN = 0;
-  cif.imemaddr = '0;
-
+  // FROM MEM
+  icache_tb.cif.dWEN = 0;
+  icache_tb.cif.dREN = 0;
+  icache_tb.cif.iREN = 0;
+  icache_tb.cif.iaddr = '0;
+  icache_tb.cif.iwait = 1;
+  icache_tb.cif.iload = '0;
 end
 endtask
 
@@ -69,18 +83,33 @@ begin
 end
 endtask
 
+task Check_Memory;
+  input string test_case;
+  input logic exp_iREN;
+  input logic [31:0] exp_iaddr;
+begin
+  assert (exp_iREN == cif.iREN && exp_iaddr == cif.iaddr)
+    $display("PASSED: %s", test_case);
+  else $display("FAILED: %s", test_case);
+end
+endtask
+
   integer i;
   string format;
   string testcase;
+  logic [3:0] index;
+  logic [25:0] tag;
   initial begin
     // ************************************************************************
     // Test Case 0: Initialize Design
     // ************************************************************************
+    Async_Reset_DUT();
     Reset_Input();
     testcase = "Reset";
 
     $display("---TEST CASE 0: Initialization---");
-    Check_Outputs("Initialization", '0, '0);
+    Check_Datapath("Initialization", '0, '0);
+    Check_Memory("Initialization", '0, '0);
     repeat(5)
         @(posedge CLK)
     $display(""); 
@@ -88,91 +117,41 @@ endtask
     // ************************************************************************
     // Test Case 1: Memread in execute hazard
     // ************************************************************************
+    Async_Reset_DUT();
     Reset_Input();
     testcase = "Test 1";
 
-    $display("---TEST CASE 1: Load Use Hazard---");
-    huif.memread_dc = 1;
-    huif.memread_ex = 0;
-    huif.Rt_dc = 5'b00110;
-    huif.Rs_ft = 0;
-    huif.Rt_ft = 5'b00110;
-    huif.Rt_ex = 0;
+    $display("---TEST CASE 1: Fill the cache---");
+    dcif.imemREN = 1'b1;
+    dcif.imemaddr = {{26{1'b1}}, 6'b000100};
+    #(5);
+    icache_tb.cif.iload = 32'hABCDEF00;
+    icache_tb.cif.iwait = 1'b0;
+    #(15);
+    icache_tb.cif.iwait = 1'b1;
+    dcif.imemaddr = {{26{1'b1}}, 6'b001000};
+    #(5);
+    icache_tb.cif.iload = 32'h12345678;
+    icache_tb.cif.iwait = 1'b0;
+    #(15);
+    icache_tb.cif.iwait = 1'b1;
+
+    dcif.imemaddr = {{26{1'b1}}, 6'b000100};
+    #(5);
+    if (dcif.imemload == 32'hABCDEF00)
+      $display("GOODOSOIDFJOISDJFOI");
+    else $display("LKSJDFKLJSD");
+    #(15);
+    dcif.imemaddr = {{26{1'b1}}, 6'b001000};
+    #(5);
+    if (dcif.imemload == 32'h12345678)
+      $display("GOODOSOIDFJOISDJFOI");
+    else $display("LKSJDFKLJSD");
     @(posedge CLK)
 
-    Check_Outputs("Load Use Hazard 1", 4'b0100, 4'b1000);
     repeat(5)
         @(posedge CLK)
-    $display(""); 
-
-    // ************************************************************************
-    // Test Case 2: Memread in memory "hazard"
-    // ************************************************************************
-    Reset_Input();
-    testcase = "Test 2";
-
-    $display("---TEST CASE 2: Load Use Hazard2---");
-    huif.memread_dc = 0;
-    huif.memread_ex = 1;
-    huif.Rt_dc = 0;
-    huif.Rs_ft = 0;
-    huif.Rt_ft = 5'b00110;
-    huif.Rt_ex = 5'b00110;
-    @(posedge CLK)
-
-    Check_Outputs("Load Use Hazard 2", 4'b0100, 4'b1000);
-    repeat(5)
-        @(posedge CLK)
-    $display(""); 
-
-    // ************************************************************************
-    // Test Case 3: Branch Not taken no hazard
-    // ************************************************************************
-    Reset_Input();
-    testcase = "Test 3";
-
-    $display("---TEST CASE 3: Branch Not taken no hazard---");
-    huif.BranchTaken = 0;
-    huif.JumpSel = 0;
-    @(posedge CLK)
-
-    Check_Outputs("Branch NT no hazard", 4'b0000, 4'b0000);
-    repeat(5)
-        @(posedge CLK)
-    $display(""); 
-
-
-    // ************************************************************************
-    // Test Case 4: Branch Taken Hazard
-    // ************************************************************************
-    Reset_Input();
-    testcase = "Test 4";
-
-    $display("---TEST CASE 4: Branch Taken Hazard---");
-    huif.BranchTaken = 1;
-    huif.JumpSel = 0;
-    @(posedge CLK)
-
-    Check_Outputs("Branch Taken Hazard", 4'b1000, 4'b0000);
-    repeat(5)
-        @(posedge CLK)
-    $display(""); 
-
-    // ************************************************************************
-    // Test Case 5: Branch Taken Hazard
-    // ************************************************************************
-    Reset_Input();
-    testcase = "Test 5";
-
-    $display("---TEST CASE 5: Branch Taken Hazard---");
-    huif.BranchTaken = 0;
-    huif.JumpSel = 1;
-    @(posedge CLK)
-
-    Check_Outputs("Branch Taken Hazard", 4'b1000, 4'b0000);
-    repeat(5)
-        @(posedge CLK)
-    $display(""); 
+    $display("");  
 
     $finish;
   end

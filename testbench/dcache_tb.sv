@@ -86,7 +86,9 @@ endtask
 //ACTUAL TEST CASES BELOW HERE
 //*******************************************************************\\
 initial begin
-    
+
+
+  $finish();  
     
 end
 endprogram

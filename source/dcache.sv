@@ -15,13 +15,13 @@ module dcache (
 );
 
 //Struct and data container declarations
-    typedef enum logic [3:0] { IDLE, WB1, WB2, R1M, R2M, FL1, FL2, CNTW, STOP } CacheState;
+    typedef enum logic [3:0] { IDLE, WB1, WB2, R1M, R2M, FLCTR, FL1, FL2, CNTW, STOP } CacheState;
     CacheState cur_state, nxt_state;
 
     localparam ASCT = 2; //sets associativity constant
     localparam BLKSZ = 2; //sets number of data words per block
     localparam TGSZ = 26; //sets tag size
-    localparam CCSZ = 8; //Sets number of cache columns
+    localparam CCSZ = 8; //Sets number of cache rows
     typedef struct packed {
         logic valid;
         logic [TGSZ-1:0] tag;
@@ -29,11 +29,19 @@ module dcache (
         logic dirty;
     } frame_struct;
 
-    frame_struct cache [CCSZ:0][ASCT-1:0];
-    frame_struct nxt_cache [CCSZ:0][ASCT-1:0];
+    typedef struct packed {
+        frame_struct [ASCT-1:0] frame;
+        logic LRU;
+    } set_struct;
 
-    logic LRU [CCSZ:0]; //least recently used associative block FSM
-    logic nxt_LRU [CCSZ:0]; //least recently used associative block FSM
+    set_struct [CCSZ-1:0] dcache;
+    set_struct [CCSZ-1:0] nxt_dcache;
+
+    //frame_struct cache [CCSZ:0][ASCT-1:0];
+    //frame_struct nxt_cache [CCSZ:0][ASCT-1:0];
+
+    //logic LRU [CCSZ:0]; //least recently used associative block FSM
+    //logic nxt_LRU [CCSZ:0]; //least recently used associative block FSM
 //********************************************************************\\
 
 
@@ -41,14 +49,20 @@ module dcache (
     logic [TGSZ-1:0] datapath_tag;
     assign datapath_tag = dcif.dmemaddr[31:31-TGSZ];
 
-    logic [32-TGSZ-BLKSZ:0] datapath_index; //not that the BLKSZ here is actually the log2(BLKSZ)
+    logic [32-TGSZ-BLKSZ-1:0] datapath_index; //not that the BLKSZ here is actually the log2(BLKSZ)
     assign datapath_index = dcif.dmemaddr[32-TGSZ-BLKSZ+1:3];
 
     logic datapath_block_offset;
     assign datapath_block_offset = dcif.dmemaddr[2];
 
 
-    logic miss, hit;
+    logic [3:0] row;
+    logic [3:0] nxt_row;
+
+    word_t hit_count;
+    word_t nxt_hit_count;
+
+    logic miss;
     logic valid, dirty; //easy to grab copies of the valid and dirty bits of the currently accessed cache val
 //********************************************************************\\
 
@@ -56,38 +70,63 @@ module dcache (
 always_ff @(posedge CLK, negedge nRST) begin : clockblock
     if(~nRST) begin
         cur_state <= IDLE;
-        //cache <= '0;
+        dcache <= '0;
+        row <= '0;
+        hit_count <= '0;
     end
     else begin
         cur_state <= nxt_state;
-        cache <= nxt_cache;
+        dcache <= nxt_dcache;
+        row <= nxt_row;
+        hit_count <= nxt_hit_count;
     end
 end
 
 
 always_comb begin : nxt_state_logic
+    nxt_row = row;
     nxt_state = cur_state;
     case(cur_state)
         IDLE: begin 
-                if(dcif.halt) nxt_state = FL1;
+                if(dcif.halt) nxt_state = FLCTR;
                 else if(miss & (~dirty | ~valid)) nxt_state = R1M;
                 else if(miss & valid & dirty) nxt_state = WB1;
         end
-        WB1:    nxt_state = (cif.dwait) ? WB1 : WB2;
-        WB2:    nxt_state = (cif.dwait) ? WB2 : R1M;
-        R1M:    nxt_state = (cif.dwait) ? R1M : R2M;
-        R2M:    nxt_state = (cif.dwait) ? R2M : IDLE;
-        FL1:    nxt_state = (cif.dwait) ? FL1 : FL2;
-        FL2:    nxt_state = (cif.dwait) ? FL2 : 
-                                (dirty) ? FL1 : CNTW;
-        CNTW:   nxt_state = (cif.dwait) ? CNTW : STOP;
+        WB1:    nxt_state = (~cif.dwait) ? WB2 : WB1;
+        WB2:    nxt_state = (~cif.dwait) ? R1M : WB2;
+        R1M:    nxt_state = (~cif.dwait) ? R2M : R1M;
+        R2M:    nxt_state = (~cif.dwait) ? IDLE : R2M;
+        FLCTR: begin
+                nxt_row = row;
+                nxt_state = cur_state;
+                if (row[3:0] < 4'd8 & ~cif.dwait) begin
+                    if (|dcache[row[3:0]].frame[0].dirty) begin
+                        nxt_row = row + 1;
+                        nxt_state = FL1;
+                    end else begin
+                        nxt_row = 4'd8;
+                        nxt_state = FL1;
+                    end
+                end else if (row[3:0] <= 4'd15 & ~cif.dwait) begin
+                    if (|dcache[row[3:0]].frame[1].dirty) begin
+                        nxt_row = row + 1;
+                        nxt_state = FL1;
+                    end else begin
+                        nxt_row = '0;
+                        nxt_state = CNTW;
+                    end
+                end
+        end
+        FL1:    nxt_state = (~cif.dwait) ? FL2 : FL1;
+        FL2:    nxt_state = (~cif.dwait) ? FLCTR: FL2;
+        CNTW:   nxt_state = (~cif.dwait) ? STOP : CNTW;
         STOP:   nxt_state = STOP;
     endcase
 end
 
 always_comb begin : memory_read_write_logic
-    nxt_cache = cache;
-    nxt_LRU = LRU;
+    nxt_dcache = dcache;
+    nxt_hit_count = hit_count;
 
     //valid for memory side transactions
     cif.dREN = 0;
@@ -97,83 +136,97 @@ always_comb begin : memory_read_write_logic
 
     //valid only for datapath size transactions
     dcif.dhit = 0;
-    hit = 0;
     dcif.dmemload = 32'd0;
     miss = 1;
     dirty = 0;
     valid = 0;
     case(cur_state)  
         IDLE: begin
+            if (dcif.halt) begin
+                nxt_hit_count = hit_count;
             //Read Logic
-            if(dcif.dmemREN) begin //drives read outputs to the datapath
+            end else if(dcif.dmemREN) begin //drives read outputs to the datapath
                 for (int i = 0; i < ASCT; i++) begin
-                    if (cache[datapath_index][i].tag == datapath_tag && cache[datapath_index][i].valid) begin
-                        dcif.dhit = 1;
-                        hit = 1;
+                    if (dcache[datapath_index].frame[i].tag == datapath_tag && dcache[datapath_index].frame[i].valid) begin
+                        dcif.dhit = 1'b1;
                         miss = 0;
-                        dcif.dmemload = cache[datapath_index][i].data[datapath_block_offset];
-                        nxt_LRU[datapath_index] = (i == 0) ? 1 : 0;
+                        dcif.dmemload = dcache[datapath_index].frame[i].data[datapath_block_offset];
+                        nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
+                        nxt_hit_count = hit_count + 1;
                         break;
                     end
                 end
             end
 
             //Write Logic
-            if(dcif.dmemWEN) begin //drives write outputs into the cache
+            else if(dcif.dmemWEN) begin //drives write outputs into the cache
                 for (int i = 0; i < ASCT; i++) begin
-                    if (cache[datapath_index][i].tag == datapath_tag && cache[datapath_index][i].valid) begin
+                    if (dcache[datapath_index].frame[i].tag == datapath_tag && dcache[datapath_index].frame[i].valid) begin
                         dcif.dhit = 1;
-                        hit = 1;
                         miss = 0;
-                        nxt_cache[datapath_index][i].data[datapath_block_offset] = dcif.dmemstore;
-                        nxt_LRU[datapath_index] = (i == 0) ? 1 : 0;
+                        nxt_dcache[datapath_index].frame[i].data[datapath_block_offset] = dcif.dmemstore;
+                        nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
+                        nxt_hit_count = hit_count + 1;
                         break;
                     end
                 end
             end
 
             if(miss) begin  //if no block matches our tag, set up signals for WB1 or R1M transfers
-                    dirty = cache[datapath_index][LRU[datapath_index]].dirty;
-                    valid = cache[datapath_index][LRU[datapath_index]].valid;
-                end
+                dirty = dcache[datapath_index].frame[dcache[datapath_index].LRU].dirty;
+                valid = dcache[datapath_index].frame[dcache[datapath_index].LRU].valid;
+            end
         end
 
         R1M:    begin
             cif.dREN = 1;
-            cif.daddr = dcif.dmemaddr;
-            nxt_cache[datapath_index][LRU[datapath_index]].data[0] = cif.dload;
-
+            cif.daddr = {datapath_tag, datapath_index, 1'b0, 2'b00};
+            nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].data[0] = cif.dload;
         end
         R2M:    begin
             cif.dREN = 1;
-            cif.daddr = dcif.dmemaddr + 4;
-            nxt_cache[datapath_index][LRU[datapath_index]].data[1] = cif.dload;
+            cif.daddr = {datapath_tag, datapath_index, 1'b1, 2'b00};
+            nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].data[1] = cif.dload;
+            nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].valid = 1'b1;
+            nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].tag = datapath_tag;
+            nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].dirty = 1'b0;
         end
         WB1:    begin
             cif.dWEN = 1;
-            cif.daddr   = {cache[datapath_index][LRU[datapath_index]].tag, datapath_index, 1'b0/*use first block here*/, 2'b00};
-            cif.dstore  = cache[datapath_index][LRU[datapath_index]].data[0];
+            cif.daddr   = {dcache[datapath_index].frame[dcache[datapath_index].LRU].tag, datapath_index, 1'b0, 2'b00};
+            cif.dstore  = dcache[datapath_index].frame[dcache[datapath_index].LRU].data[0];
         end    
         WB2:    begin
             cif.dWEN = 1;
-            cif.daddr   = {cache[datapath_index][LRU[datapath_index]].tag, datapath_index, 1'b1/*use second block here*/, 2'b00};
-            cif.dstore  = cache[datapath_index][LRU[datapath_index]].data[0];
+            cif.daddr   = {dcache[datapath_index].frame[dcache[datapath_index].LRU].tag, datapath_index, 1'b1, 2'b00};
+            cif.dstore  = dcache[datapath_index].frame[dcache[datapath_index].LRU].data[1];
         end       
         FL1:    begin
-
-        end    
+            cif.dWEN = 1;
+            if (row < 4'd8) begin
+                cif.daddr = {dcache[row].frame[0].tag, row, 2'b00};
+                cif.dstore = dcache[row].frame[0].data[0];
+            end else begin
+                cif.daddr = {dcache[row].frame[1].tag, row, 2'b00};
+                cif.dstore = dcache[row].frame[1].data[0];
+            end
+        end
         FL2:    begin
-
+            cif.dWEN = 1;
+            if (row < 4'd8) begin
+                cif.daddr = {dcache[row].frame[0].tag, row, 2'b00};
+                cif.dstore = dcache[row].frame[0].data[1];
+            end else begin
+                cif.daddr = {dcache[row].frame[1].tag, row, 2'b00};
+                cif.dstore = dcache[row].frame[1].data[1];
+            end
         end    
         CNTW:   begin
-
+            cif.dWEN = 1;
+            cif.daddr = 32'h00003100;
+            cif.dstore = hit_count;
         end   
-
     endcase
 end
-
-
-
-
 
 endmodule

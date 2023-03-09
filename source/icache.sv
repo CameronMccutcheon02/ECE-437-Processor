@@ -21,22 +21,22 @@ module icache (
     typedef struct packed {
         logic valid;
         logic [TGSZ-1:0] tag;
-        word_t data [BLKSZ-1:0];
+        word_t [BLKSZ-1:0] data;
     } frame_struct;
 
-    frame_struct icache [15:0];
+    frame_struct [15:0] icache;
 
     logic [25:0] tag;
     logic [3:0] index;
 
-    assign tag = dcif.imemload[31:6];
-    assign index = dcif.imemload[5:2];
+    assign tag = dcif.imemaddr[31:6];
+    assign index = dcif.imemaddr[5:2];
 
     always_ff @(posedge CLK, negedge nRST) begin: Reg_Logic
         if (~nRST) begin
             // initialize icahce to 0's
             icache <= '0;
-        end else if (~cif.iload) begin
+        end else if (~cif.iwait) begin
             // on ihit, load instruction into icache as well
             icache[index].valid <= 1'b1;
             icache[index].tag <= tag;
@@ -48,8 +48,8 @@ module icache (
     end
 
     always_comb begin: Out_Logic
-        cif.IREN = 0;
-        cif.imemaddr = '0;
+        cif.iREN = 0;
+        cif.iaddr = '0;
 
         dcif.ihit = 0;
         dcif.imemload = '0;
@@ -62,8 +62,8 @@ module icache (
                 dcif.imemload = icache[index].data;
             end else begin // if we dont have a hit in the cache, pass the job to memory
                 // send memory the instruction we want
-                cif.IREN = cif.imemREN;
-                cif.iaddr = cif.imemaddr;
+                cif.iREN = dcif.imemREN;
+                cif.iaddr = dcif.imemaddr;
 
                 // give datapath the instruction that memory gives us
                 dcif.ihit = ~cif.iwait;
