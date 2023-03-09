@@ -16,7 +16,7 @@ module dcache (
 
 //Struct and data container declarations
     typedef enum logic [3:0] { IDLE, WB1, WB2, R1M, R2M, FLCTR, FL1, FL2, CNTW, STOP } CacheState;
-    CacheState cur_state, nxt_state;
+    CacheState cur_state, nxt_state, prev_state;
 
     localparam ASCT = 2; //sets associativity constant
     localparam BLKSZ = 2; //sets number of data words per block
@@ -46,14 +46,20 @@ module dcache (
 
 
 //Internal Variable Declarations
-    logic [TGSZ-1:0] datapath_tag;
-    assign datapath_tag = dcif.dmemaddr[31:31-TGSZ+1];
+    dcachef_t addr;
+    assign addr = dcachef_t'(dcif.dmemaddr);
 
-    logic [32-TGSZ-BLKSZ-1:0] datapath_index; //not that the BLKSZ here is actually the log2(BLKSZ)
-    assign datapath_index = dcif.dmemaddr[32-TGSZ-BLKSZ+1:3];
+    logic [TGSZ-1:0] datapath_tag;
+    assign datapath_tag = addr.tag; //dcif.dmemaddr[31:31-TGSZ+1];
+
+    logic [32-TGSZ-BLKSZ-1-1:0] datapath_index; //not that the BLKSZ here is actually the log2(BLKSZ)
+    assign datapath_index = addr.idx; //dcif.dmemaddr[32-TGSZ-BLKSZ+1:3];
 
     logic datapath_block_offset;
-    assign datapath_block_offset = dcif.dmemaddr[2];
+    assign datapath_block_offset = addr.blkoff; //dcif.dmemaddr[2];
+
+    logic [1:0] datapath_byte_offset;
+    assign datapath_byte_offset = addr.bytoff;
 
 
     logic [3:0] row;
@@ -70,11 +76,13 @@ module dcache (
 always_ff @(posedge CLK, negedge nRST) begin : clockblock
     if(~nRST) begin
         cur_state <= IDLE;
+        prev_state <= IDLE;
         dcache <= '0;
         row <= '0;
         hit_count <= '0;
     end
     else begin
+        prev_state <= cur_state;
         cur_state <= nxt_state;
         dcache <= nxt_dcache;
         row <= nxt_row;
@@ -88,10 +96,9 @@ always_comb begin : nxt_state_logic
     nxt_state = cur_state;
     case(cur_state)
         IDLE: begin 
-                
+                if(dcif.halt) nxt_state = FLCTR;
                 if (dcif.dmemREN | dcif.dmemWEN) begin //dcif 
-                    if(dcif.halt) nxt_state = FLCTR;
-                    else if(miss & (~dirty | ~valid)) nxt_state = R1M;
+                    if(miss & (~dirty | ~valid)) nxt_state = R1M;
                     else if(miss & valid & dirty) nxt_state = WB1;
                 end
         end
@@ -102,23 +109,13 @@ always_comb begin : nxt_state_logic
         FLCTR: begin
                 nxt_row = row;
                 nxt_state = cur_state;
-                if (row[3:0] < 4'd8 & ~cif.dwait) begin
-                    if (|dcache[row[3:0]].frame[0].dirty) begin
-                        nxt_row = row + 1;
-                        nxt_state = FL1;
-                    end else begin
-                        nxt_row = 4'd8;
-                        nxt_state = FL1;
-                    end
-                end else if (row[3:0] <= 4'd15 & ~cif.dwait) begin
-                    if (|dcache[row[3:0]].frame[1].dirty) begin
-                        nxt_row = row + 1;
-                        nxt_state = FL1;
-                    end else begin
-                        nxt_row = '0;
-                        nxt_state = CNTW;
-                    end
+                if (dcache[row[3:1]].frame[row[0]].dirty) begin
+                    nxt_state = FL1;
+                end else begin
+                    nxt_row = row + 1;
                 end
+                if (row == 4'd15 && nxt_row == 0)
+                    nxt_state = CNTW;
         end
         FL1:    nxt_state = (~cif.dwait) ? FL2 : FL1;
         FL2:    nxt_state = (~cif.dwait) ? FLCTR: FL2;
@@ -156,7 +153,8 @@ always_comb begin : memory_read_write_logic
                         miss = 0;
                         dcif.dmemload = dcache[datapath_index].frame[i].data[datapath_block_offset];
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
-                        nxt_hit_count = hit_count + 1;
+                        if (prev_state != R1M)
+                            nxt_hit_count = hit_count + 1;
                         break;
                     end
                 end
@@ -172,7 +170,8 @@ always_comb begin : memory_read_write_logic
                         nxt_dcache[datapath_index].frame[i].dirty = 1;
 
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
-                        nxt_hit_count = hit_count + 1;
+                        if (prev_state != R1M)
+                            nxt_hit_count = hit_count + 1;
                         break;
                     end
                 end
@@ -213,23 +212,14 @@ always_comb begin : memory_read_write_logic
         end       
         FL1:    begin
             cif.dWEN = 1;
-            if (row < 4'd8) begin
-                cif.daddr = {dcache[row].frame[0].tag, row, 2'b00};
-                cif.dstore = dcache[row].frame[0].data[0];
-            end else begin
-                cif.daddr = {dcache[row].frame[1].tag, row, 2'b00};
-                cif.dstore = dcache[row].frame[1].data[0];
-            end
+            cif.daddr = {dcache[row[3:1]].frame[row[0]].tag, row[3:1], 1'b0, 2'b00};
+            cif.dstore = dcache[row[3:1]].frame[row[0]].data[0];
+            nxt_dcache[row[3:1]].frame[row[0]].dirty = 0;
         end
         FL2:    begin
             cif.dWEN = 1;
-            if (row < 4'd8) begin
-                cif.daddr = {dcache[row].frame[0].tag, row, 2'b00};
-                cif.dstore = dcache[row].frame[0].data[1];
-            end else begin
-                cif.daddr = {dcache[row].frame[1].tag, row, 2'b00};
-                cif.dstore = dcache[row].frame[1].data[1];
-            end
+            cif.daddr = {dcache[row[3:1]].frame[row[0]].tag, row[3:1], 1'b1, 2'b00};
+            cif.dstore = dcache[row[3:1]].frame[row[0]].data[1];
         end    
         CNTW:   begin
             cif.dWEN = 1;

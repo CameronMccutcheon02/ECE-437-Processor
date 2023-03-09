@@ -140,8 +140,8 @@ task read_transaction (
     end
   
   check_outputs("test", exp_data);
-  @(posedge CLK); //Once read is finished, set the REN low again
   dcif.dmemREN = 0;
+  @(posedge CLK); //Once read is finished, set the REN low again
   set_to_idle();
   end
 endtask
@@ -185,7 +185,7 @@ task write_transaction (
       @(posedge CLK); //Let the state machine go back to IDLE so that we can write
     end
 
-  
+  dcif.dmemWEN = 0;
   @(posedge CLK); //value in cache should now be updated
   //check_outputs("test", exp_data);
 
@@ -211,7 +211,7 @@ logic [TGSZ-1:0] datapath_tag;
 initial begin
 
   // ************************************************************************
-  // Test Case 0: Simple Read and fill of cache
+  // Test Case 1: Simple Read and fill of cache
   // ************************************************************************
   tb_test_case = "Test Case 1";
   set_to_idle();
@@ -225,7 +225,7 @@ initial begin
   @(posedge CLK);
 
   // ************************************************************************
-  // Test Case 1: Simple Read followed by write
+  // Test Case 2: Simple Read followed by write
   // ************************************************************************
   tb_test_case = "Test Case 2";
   set_to_idle();
@@ -314,6 +314,48 @@ initial begin
   mem_data[1] = 21;
   datapath_tag = 19;
   read_transaction(.datapath_tag(datapath_tag), .datapath_index(0), .datapath_block_offset(0), .mem_data(mem_data), .exp_data(mem_data[0]));
+
+
+  //************************************************************************
+  // Test Case 5: Non-zero index
+  // ************************************************************************
+  tb_test_case = "Test Case 5";
+  set_to_idle();
+  reset_dut();
+  @(posedge CLK);
+  //Read into the first memory
+  mem_data[0] = 42; 
+  mem_data[1] = 69;
+  datapath_tag = 69;
+  read_transaction(.datapath_tag(datapath_tag), .datapath_index(2), .datapath_block_offset(0), .mem_data(mem_data), .exp_data(mem_data[0]));
+
+  
+
+
+
+
+  // ************************************************************************
+  // Test Case 6: Flush Test
+  // ************************************************************************
+  tb_test_case = "Test Case 6";
+  set_to_idle();
+  reset_dut();
+
+  mem_data[0] = 29; 
+  mem_data[1] = 30;
+  datapath_tag = 12;
+
+  write_transaction(.datapath_tag(datapath_tag), .datapath_index(0), .datapath_block_offset(0), 
+  .mem_data(mem_data), .exp_data(mem_data[0]),
+  .send_data(send_data));
+  set_to_idle();
+
+  dcif.halt = 1;
+
+  while(cif.daddr != 32'h00003100)
+    @(negedge CLK);
+  
+
 
   $finish();  
     
