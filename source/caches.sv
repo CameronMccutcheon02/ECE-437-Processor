@@ -24,9 +24,9 @@ module caches (
   word_t daddr;
 
   // icache
-  icache  ICACHE(dcif, cif);
+  icache  ICACHE(CLK, nRST, dcif, cif);
   // dcache
-  dcache  DCACHE(dcif, cif);
+  dcache  DCACHE(CLK, nRST, dcif, cif);
 
   // // single cycle instr saver (for memory ops)
   // always_ff @(posedge CLK)

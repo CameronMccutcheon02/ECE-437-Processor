@@ -10,7 +10,7 @@ nop
 nop
 nop
 sw $9, 0x00F0($8)
-sub $10, $10, 1
+addi $10, $10, -1
 beq $0, $10, end
 nop
 nop

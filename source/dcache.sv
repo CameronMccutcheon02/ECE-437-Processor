@@ -10,7 +10,7 @@ import cpu_types_pkg::*;
 
 module dcache (
     input logic CLK, nRST,
-    datapath_cache_if.dcache dcif,
+    datapath_cache_if.cache dcif,
     caches_if cif
 );
 
@@ -153,7 +153,7 @@ always_comb begin : memory_read_write_logic
                         miss = 0;
                         dcif.dmemload = dcache[datapath_index].frame[i].data[datapath_block_offset];
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
-                        if (prev_state != R1M)
+                        if (prev_state != R2M)
                             nxt_hit_count = hit_count + 1;
                         break;
                     end
@@ -170,7 +170,7 @@ always_comb begin : memory_read_write_logic
                         nxt_dcache[datapath_index].frame[i].dirty = 1;
 
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
-                        if (prev_state != R1M)
+                        if (prev_state != R2M)
                             nxt_hit_count = hit_count + 1;
                         break;
                     end
@@ -226,6 +226,10 @@ always_comb begin : memory_read_write_logic
             cif.daddr = 32'h00003100;
             cif.dstore = hit_count;
         end   
+        STOP: begin
+            dcif.flushed = 1;
+
+        end
     endcase
 end
 

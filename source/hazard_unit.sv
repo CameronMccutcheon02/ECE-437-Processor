@@ -21,7 +21,12 @@ module hazard_unit (
         else if (huif.JumpSel == 2'd1 | huif.JumpSel == 2'd2)
             huif.flush = 4'b1110; // flush fetch/decode latch if jump
 
-        else if (huif.memread_dc) begin
+        else if (huif.memread_ex || huif.memwrite_ex) begin
+            huif.freeze = 4'b1111; //if we are actively reading or writing
+            //we freeze our stages until the dhit signal pulls these two back to low
+        end
+
+        else if (huif.memread_dc) begin //read-use case
             if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
                 huif.flush = 4'b0100; // flush decode/execute latch if load dependency
                 huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency

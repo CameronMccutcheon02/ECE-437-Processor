@@ -38,6 +38,7 @@ module icache (
             icache <= '0;
         end else if (~cif.iwait & dcif.imemREN) begin
             // on ihit, load instruction into icache as well
+            icache <= icache;
             icache[index].valid <= 1'b1;
             icache[index].tag <= tag;
             icache[index].data <= cif.iload;
@@ -49,7 +50,7 @@ module icache (
 
     always_comb begin: Out_Logic
         cif.iREN = 0;
-        cif.iaddr = '0;
+        cif.iaddr = dcif.imemaddr;
 
         dcif.ihit = 0;
         dcif.imemload = '0;

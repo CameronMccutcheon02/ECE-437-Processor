@@ -61,7 +61,8 @@ module datapath (
   //*******************************************\\
 	always_comb begin: Datapath_Logic
 		// instruction memory
-		dpif.imemREN = ftif.imemREN && ~exif.execute_p.halt;
+    
+		dpif.imemREN = ftif.imemREN && ~exif.execute_p.halt; //if halt, stop, if 
 		dpif.imemaddr = ftif.imemaddr;
 		ftif.imemload = dpif.imemload;
 
@@ -88,6 +89,7 @@ module datapath (
   always_comb begin: hazard_unit
     huif.memread_dc = dcif.decode_p.dREN;
     huif.memread_ex = exif.execute_p.dREN;
+    huif.memwrite_ex = exif.execute_p.dWEN;
     //Rt's
     huif.Rt_ft = ftif.fetch_p.imemload[20:16];
     huif.Rt_dc = dcif.decode_p.Rt;

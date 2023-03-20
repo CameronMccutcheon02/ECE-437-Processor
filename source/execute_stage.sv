@@ -29,15 +29,18 @@ module execute_stage(
             exif.execute_p <= '0;
         else if (exif.flush & exif.ihit)
             exif.execute_p <= '0;
-        else if (exif.freeze)
-            exif.execute_p <= exif.execute_p;
-        else if (exif.ihit)
-            exif.execute_p <= execute;
+        
         else if (exif.dhit) begin
             exif.execute_p <= exif.execute_p;
             exif.execute_p.dWEN <= execute.dWEN;
             exif.execute_p.dREN <= execute.dREN;
-        end else
+        end
+        else if (exif.freeze) begin
+            exif.execute_p <= exif.execute_p;
+        end
+        else if (exif.ihit)
+            exif.execute_p <= execute;
+        else
             exif.execute_p <= exif.execute_p;
     end
 

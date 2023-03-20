@@ -8,7 +8,7 @@ interface hazard_unit_if;
 
     logic [3:0] flush;
     logic [3:0] freeze;
-    logic memread_dc, memread_ex;
+    logic memread_dc, memread_ex, memwrite_ex;
     word_t Rs_ft; //Rs's
     word_t Rt_dc, Rt_ex, Rt_ft; //Rt's
     word_t Rd_dc, Rd_ex; //Rd's
@@ -19,7 +19,7 @@ interface hazard_unit_if;
     logic halt;
 
     modport hu (
-        input memread_dc, memread_ex, branch_mispredict, JumpSel,
+        input memread_dc, memread_ex, memwrite_ex, branch_mispredict, JumpSel,
         input Rs_ft, //Rs's
         input Rt_dc, Rt_ex, Rt_ft, //Rt's
         input Rd_dc, Rd_ex, //Rd's

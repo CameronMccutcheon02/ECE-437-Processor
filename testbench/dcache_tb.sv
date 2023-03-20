@@ -25,9 +25,9 @@ module dcache_tb;
     datapath_cache_if dcif();
     caches_if cif();
     
-    dcache DUT(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
+    //dcache DUT(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
 
-    test PROG(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
+   // test PROG(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
 
 
 endmodule
@@ -38,8 +38,8 @@ program test (
   input logic CLK,
   
   output logic nRST,
-  datapath_cache_if.dcache dcif, //memory cache to controller, we only need one here because the other isn't used in lab 3
-  caches_if.dcache cif
+  datapath_cache_if dcif, //memory cache to controller, we only need one here because the other isn't used in lab 3
+  caches_if cif
 
 );
 
