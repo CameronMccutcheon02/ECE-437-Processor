@@ -1,3 +1,19 @@
-2 = 37.81 MHz, 70.17 MHz
-6 = 39.2 MHz, 66.73 MHz
-10 = 37.99 MHz, 69.33 MHz
+Instruction Count = 5404
+
+Singlecycle:
+0  = 38.29 MHz | 6900  CPU cycles | Period = 26.1 ns | CPI = 1.28 | execution time = 0.18  ms
+2  = 35.09 MHz | 13802 CPU cycles | Period = 28.5 ns | CPI = 2.55 | execution time = 0.393 ms
+6  = 33.37 MHz | 27604 CPU cycles | Period = 30.0 ns | CPI = 5.11 | execution time = 0.827 ms
+10 = 34.65 MHz | 41406 CPU cycles | Period = 28.9 ns | CPI = 7.66 | execution time = 1.195 ms
+
+Pipeline:
+0  = 68.25 MHz | 10153 CPU cycles | Period = 14.7 ns | CPI = 1.89 | execution time = 0.149 ms
+2  = 67.93 MHz | 20243 CPU cycles | Period = 14.7 ns | CPI = 3.75 | execution time = 0.298 ms
+6  = 68.18 MHz | 40421 CPU cycles | Period = 14.7 ns | CPI = 7.48 | execution time = 0.593 ms
+10 = 72.11 MHz | 60599 CPU cycles | Period = 13.8 ns | CPI = 11.2 | execution time = 0.84  ms
+
+Cached:
+0  = 60.6  MHz | 10468 CPU cycles | Period = 16.5 ns | CPI = 1.94 | execution time = 0.173 ms
+2  = 63.4  MHz | 11355 CPU cycles | Period = 15.8 ns | CPI = 2.10 | execution time = 0.179 ms
+6  = 65.88 MHz | 10434 CPU cycles | Period = 15.2 ns | CPI = 1.93 | execution time = 0.158 ms
+10 = 63.74 MHz | 14951 CPU cycles | Period = 15.7 ns | CPI = 2.77 | execution time = 0.235 ms

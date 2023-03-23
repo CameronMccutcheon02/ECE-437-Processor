@@ -16,7 +16,7 @@ import cpu_types_pkg::*;
 
 module caches (
   input logic CLK, nRST,
-  datapath_cache_if.cache dcif,
+  datapath_cache_if dcif,
   caches_if cif
 );
 

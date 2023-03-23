@@ -16,8 +16,8 @@ module branch_predictor (
     import custom_types_pkg::*;
 
     // initialize structs
-    localparam MEMSIZE = 256;
-    localparam ADDRSIZE = 9;
+    localparam MEMSIZE = 32;
+    localparam ADDRSIZE = 6;
 
     logic [1:0] br_pred [MEMSIZE -1:0]; //intialize the bits of the branch predictor table (state machine)
     logic [1:0] br_pred_nxt [MEMSIZE -1:0]; //intialize the bits of the branch predictor table (state machine)

@@ -10,8 +10,8 @@ import cpu_types_pkg::*;
 
 module icache (
     input logic CLK, nRST,
-    datapath_cache_if.cache dcif,
-    caches_if cif
+    datapath_cache_if.icache dcif,
+    caches_if.icache cif
 );
 
     localparam ASCT = 1; //sets associativity constant
