@@ -13,7 +13,6 @@ README
 *.diff
 
 # Work directory files
-wlft*
 *.qdb
 *.qpg
 *.qtl
