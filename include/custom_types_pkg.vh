@@ -10,6 +10,9 @@
 
 package custom_types_pkg;
     import cpu_types_pkg::*;
+
+    parameter CACHE_W;
+
     //Each of these structs describe the modular output of a given stage
     //Some control signals belong to the stage, but are passed as outputs 
     //to be used in other modules on the same clock cycle
@@ -122,6 +125,24 @@ package custom_types_pkg;
         word_t port_w;
 
     }   writeback_t;
+
+    typedef struct packed { 
+        logic [CACHE_W-1:0] snoop_req;
+        logic [CACHE_W-1:0] snoop_dest;
+        logic [CACHE_W-2:0] arb;
+    } coherence_t;
+
+    typedef enum logic [2:0] {
+        IDLE,
+        SNOOP,
+        BUSRD1,
+        BUSRD2,
+        MEMRD1,
+        MEMRD2,
+        BUSRDX,
+        BUSWB1,
+        BUSWB2
+    } memory_control_t 
 
 endpackage
 `endif
