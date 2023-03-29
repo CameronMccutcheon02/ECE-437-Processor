@@ -152,10 +152,10 @@ always_comb begin : arbiternextlogic
     next_mc.arb = mc.arb;
 
     if (mc_state == IDLE) begin
-      if (ccif.dREN[0] | ccif.dWEN[0] | ccif.iREN[0]) 
-        next_mc.arb = 0;
-      else if (ccif.dREN[1] | ccif.dWEN[1] | ccif.iREN[1])
-        next_mc.arb = 1;
+      if (ccif.dREN[mc.arb] | ccif.dWEN[mc.arb] | ccif.iREN[mc.arb]) 
+        next_mc.arb = mc.arb;
+      else if (ccif.dREN[~mc.arb] | ccif.dWEN[~mc.arb] | ccif.iREN[~mc.arb])
+        next_mc.arb = ~mc.arb;
     end 
 end
 
