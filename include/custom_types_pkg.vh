@@ -132,16 +132,21 @@ package custom_types_pkg;
         logic [CACHE_W-2:0] arb;
     } coherence_t;
 
-    typedef enum logic [2:0] {
+    typedef enum logic [3:0] {
         IDLE,
-        SNOOP,
-        BUSRD1,
+        PRRD,
+        BUSRD1
         BUSRD2,
-        MEMRD1,
-        MEMRD2,
-        BUSRDX,
         BUSWB1,
-        BUSWB2
+        BUSWB2,
+
+        PRWR,
+        BUSRDX1,
+        BUSRDX2,
+        BUSWBX1,
+        BUSWBX2,
+
+        IMEM,
     } memory_control_t 
 
 endpackage
