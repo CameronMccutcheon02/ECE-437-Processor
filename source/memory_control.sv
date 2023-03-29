@@ -82,18 +82,16 @@ modport cc
         // when doing snoops, ccwait[~mc.arb] goes high, in that case
         // we can just use dREN as a validation signal for a matching snoop
         // (requires additional logic in dcache for setting this when ccwait is high)
-        
-        // TODO: LOOK AT THE CCIF.TRANS TIMINGS FOR SNOOP AND BUS_RD_C2, ONE IS WRONG
         if (ccif.dREN[mc.arb]) begin // PrRd
-          if (ccif.trans[~mc.arb]) // I->S (get from other cache)
+          if (ccif.dREN[~mc.arb])         // I->S (get from other cache)
             next_mc_state = BUS_RD_C1;
-          else if (ccif.trans[~mc.arb]) // I->S (get from memory)
+          else                            // I->S (get from memory)
             next_mc_state = BUS_RD_M1;
         end else if (ccif.dWEN[mc.arb]) begin // PrWr
-          if (ccif.trans[~mc.arb])
-            next_mc_state = BUS_RDX_C1; // I->M or S->M (get from other cache)
-          else if (ccif.trans[~mc.arb])
-            next_mc_state = BUS_RDX_M1; // I->M or S->M (get from memory)
+          if (ccif.dREN[~mc.arb])         // I->M or S->M (get from other cache)
+            next_mc_state = BUS_RDX_C1; 
+          else                            // I->M or S->M (get from memory)
+            next_mc_state = BUS_RDX_M1; 
         end
       end
       BUS_RD_C1: next_mc_state = BUS_RD_C2;
