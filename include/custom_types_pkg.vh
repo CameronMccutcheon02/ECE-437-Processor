@@ -126,9 +126,7 @@ package custom_types_pkg;
 
     }   writeback_t;
 
-    typedef struct packed { 
-        logic [CACHE_W-1:0] snoop_req;
-        logic [CACHE_W-1:0] snoop_dest;
+    typedef struct packed {
         logic [CACHE_W-2:0] arb;
     } coherence_t;
 
