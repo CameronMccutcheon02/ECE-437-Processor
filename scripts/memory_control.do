@@ -1,27 +1,33 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /memory_control_tb/passed
-add wave -noupdate /memory_control_tb/total
+add wave -noupdate /memory_control_tb/PROG/test_num
+add wave -noupdate /memory_control_tb/PROG/test_case
 add wave -noupdate /memory_control_tb/CLK
-add wave -noupdate /memory_control_tb/nRST
-add wave -noupdate /memory_control_tb/cif0/iwait
-add wave -noupdate /memory_control_tb/cif0/dwait
-add wave -noupdate /memory_control_tb/cif0/iREN
-add wave -noupdate /memory_control_tb/cif0/dREN
-add wave -noupdate /memory_control_tb/cif0/dWEN
-add wave -noupdate /memory_control_tb/cif0/iload
-add wave -noupdate /memory_control_tb/cif0/dload
-add wave -noupdate /memory_control_tb/cif0/dstore
-add wave -noupdate /memory_control_tb/cif0/iaddr
-add wave -noupdate /memory_control_tb/cif0/daddr
-add wave -noupdate /memory_control_tb/ramif/ramREN
-add wave -noupdate /memory_control_tb/ramif/ramWEN
-add wave -noupdate /memory_control_tb/ramif/ramaddr
-add wave -noupdate /memory_control_tb/ramif/ramstore
-add wave -noupdate /memory_control_tb/ramif/ramload
-add wave -noupdate /memory_control_tb/ramif/ramstate
+add wave -noupdate /memory_control_tb/PROG/check
+add wave -noupdate /memory_control_tb/MEM/mc_state
+add wave -noupdate -radix binary /memory_control_tb/PROG/ccif/iwait
+add wave -noupdate -radix binary /memory_control_tb/PROG/ccif/dwait
+add wave -noupdate -radix binary /memory_control_tb/PROG/ccif/iREN
+add wave -noupdate -radix binary /memory_control_tb/PROG/ccif/dREN
+add wave -noupdate -radix binary /memory_control_tb/PROG/ccif/dWEN
+add wave -noupdate -radix unsigned -childformat {{{/memory_control_tb/PROG/ccif/iload[1]} -radix unsigned} {{/memory_control_tb/PROG/ccif/iload[0]} -radix unsigned}} -expand -subitemconfig {{/memory_control_tb/PROG/ccif/iload[1]} {-height 16 -radix unsigned} {/memory_control_tb/PROG/ccif/iload[0]} {-height 16 -radix unsigned}} /memory_control_tb/PROG/ccif/iload
+add wave -noupdate -radix unsigned -childformat {{{/memory_control_tb/PROG/ccif/dload[1]} -radix unsigned} {{/memory_control_tb/PROG/ccif/dload[0]} -radix unsigned}} -expand -subitemconfig {{/memory_control_tb/PROG/ccif/dload[1]} {-height 16 -radix unsigned} {/memory_control_tb/PROG/ccif/dload[0]} {-height 16 -radix unsigned}} /memory_control_tb/PROG/ccif/dload
+add wave -noupdate -radix unsigned -childformat {{{/memory_control_tb/PROG/ccif/dstore[1]} -radix unsigned} {{/memory_control_tb/PROG/ccif/dstore[0]} -radix unsigned}} -expand -subitemconfig {{/memory_control_tb/PROG/ccif/dstore[1]} {-height 16 -radix unsigned} {/memory_control_tb/PROG/ccif/dstore[0]} {-height 16 -radix unsigned}} /memory_control_tb/PROG/ccif/dstore
+add wave -noupdate -radix unsigned -childformat {{{/memory_control_tb/PROG/ccif/iaddr[1]} -radix unsigned} {{/memory_control_tb/PROG/ccif/iaddr[0]} -radix unsigned}} -expand -subitemconfig {{/memory_control_tb/PROG/ccif/iaddr[1]} {-height 16 -radix unsigned} {/memory_control_tb/PROG/ccif/iaddr[0]} {-height 16 -radix unsigned}} /memory_control_tb/PROG/ccif/iaddr
+add wave -noupdate -radix unsigned -childformat {{{/memory_control_tb/PROG/ccif/daddr[1]} -radix unsigned} {{/memory_control_tb/PROG/ccif/daddr[0]} -radix unsigned}} -expand -subitemconfig {{/memory_control_tb/PROG/ccif/daddr[1]} {-height 16 -radix unsigned} {/memory_control_tb/PROG/ccif/daddr[0]} {-height 16 -radix unsigned}} /memory_control_tb/PROG/ccif/daddr
+add wave -noupdate -group coherence -expand /memory_control_tb/PROG/ccif/ccwait
+add wave -noupdate -group coherence -expand /memory_control_tb/PROG/ccif/ccinv
+add wave -noupdate -group coherence -expand /memory_control_tb/PROG/ccif/ccwrite
+add wave -noupdate -group coherence -expand /memory_control_tb/PROG/ccif/cctrans
+add wave -noupdate -group coherence -expand /memory_control_tb/PROG/ccif/ccsnoopaddr
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramWEN
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramREN
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramstate
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramaddr
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramstore
+add wave -noupdate -expand -group RamSignals /memory_control_tb/PROG/ccif/ramload
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {158055000 ps} 0}
+WaveRestoreCursors {{Cursor 1} {178838 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -37,4 +43,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {483167 ns}
+WaveRestoreZoom {164098 ps} {296098 ps}

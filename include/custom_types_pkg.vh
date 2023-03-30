@@ -11,7 +11,7 @@
 package custom_types_pkg;
     import cpu_types_pkg::*;
 
-    parameter CACHE_W;
+    parameter CACHE_W = 2;
 
     //Each of these structs describe the modular output of a given stage
     //Some control signals belong to the stage, but are passed as outputs 
@@ -146,7 +146,7 @@ package custom_types_pkg;
 
         IMEM,
         CACWB
-    } memory_control_t 
+    } memory_control_t;
 
 endpackage
 `endif

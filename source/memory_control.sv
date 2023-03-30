@@ -67,7 +67,6 @@ modport cc
   */
 
     next_mc_state = mc_state;
-    next_mc = mc;
 
     case (mc_state)
       IDLE: begin
@@ -195,7 +194,7 @@ modport cc
 
       BUSWB1: begin //read from other cache, write to main mem
         // cache signals
-        ccif.dwait[~mc.arb] = ~(ccif.ramstate == ACCESS);
+        // ccif.dwait[~mc.arb] = ~(ccif.ramstate == ACCESS);
         // i originally had this below as 1'b0, but i think this 
         // should wait on the data to also have been written 
         // to memory to gurantee that we dont read modified 
@@ -216,7 +215,7 @@ modport cc
 
       BUSWB2: begin
         // cache signals
-        ccif.dwait[~mc.arb] = ~(ccif.ramstate == ACCESS);
+        // ccif.dwait[~mc.arb] = ~(ccif.ramstate == ACCESS);
         ccif.dwait[mc.arb]  = ~(ccif.ramstate == ACCESS);
         ccif.dload[mc.arb]  = ccif.dstore[~mc.arb];
 
@@ -270,7 +269,7 @@ modport cc
 
       BUSWBX1:  begin
         // cache signals
-        ccif.dwait[~mc.arb] = 1'b0;
+        // ccif.dwait[~mc.arb] = 1'b0;
         ccif.dwait[mc.arb]  = 1'b0;
         ccif.dload[mc.arb]  = ccif.dstore[~mc.arb];
 
@@ -281,7 +280,7 @@ modport cc
 
       BUSWBX2:  begin
         // cache signals
-        ccif.dwait[~mc.arb] = 1'b0;
+        // ccif.dwait[~mc.arb] = 1'b0;
         ccif.dwait[mc.arb]  = 1'b0;
         ccif.dload[mc.arb]  = ccif.dstore[~mc.arb];
 
@@ -312,6 +311,8 @@ modport cc
         ccif.ramWEN   = 1'b1;
         ccif.ramaddr  = ccif.daddr[mc.arb];
         ccif.ramstore = ccif.dstore[mc.arb];
+
+        ccif.dwait[mc.arb] = ~(ccif.ramstate == ACCESS);
       end
 
     endcase
