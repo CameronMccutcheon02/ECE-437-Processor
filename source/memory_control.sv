@@ -79,7 +79,7 @@ modport cc
           // go to general write to bus state when dWEN is high
           next_mc_state = CACWB;
 
-        else if (ccif.ccwrite[mc.arb]) 
+        else if (ccif.dWEN[mc.arb] & ccif.ccwrite[mc.arb]) 
           // if dcache is attempting to do a write but misses
           // we need to do a read from mem with coherence
           next_mc_state = PRWR;
@@ -126,6 +126,12 @@ modport cc
 
       BUSRDX2:  next_mc_state = (ccif.ramstate == ACCESS) ? IDLE : mc_state;
 
+      // Instruction Fetch
+      IMEM: next_mc_state = (ccif.ramstate == ACCESS) ? IDLE : mc_state;
+
+      // Flush to RAM
+      CACWB: next_mc_state = (ccif.ramstate == ACCESS) ? IDLE : mc_state;
+      
     endcase
   end
 
