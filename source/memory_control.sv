@@ -194,12 +194,6 @@ modport cc
 
       BUSWB1: begin //read from other cache, write to main mem
         // cache signals
-        // ccif.dwait[~mc.arb] = ~(ccif.ramstate == ACCESS);
-        // i originally had this below as 1'b0, but i think this 
-        // should wait on the data to also have been written 
-        // to memory to gurantee that we dont read modified 
-        // data during the writing window for consistency reasons.
-        // maybe it is okay to just do 1'b0 though? same w/ buswb2 <- delete
         ccif.dwait[mc.arb]  = ~(ccif.ramstate == ACCESS); 
         ccif.dload[mc.arb]  = ccif.dstore[~mc.arb];
 
@@ -248,8 +242,6 @@ modport cc
         ccif.ramaddr = ccif.daddr[mc.arb]; 
 
         // coherency signals
-        // i think this might be necessary here just so dcache 
-        // doesnt leave idle state for when we invalidate in next state? <- delete
         ccif.ccwait[~mc.arb] = 1'b1; 
       end
 
