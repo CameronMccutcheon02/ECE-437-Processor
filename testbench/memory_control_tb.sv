@@ -103,37 +103,60 @@ program test(
         // Test Case 0: Initial Reset
         // ************************************************************************
         New_Test("Initial Reset");
+        Reset_DUT();
+
+        Check_Cache_Outputs(2'b11, '0, 2'b11, '0);
+        Check_Ram_Outputs('0, '0, '0, '0);
+        Check_Coherence_Outputs('0, '0, '0);
 
         // ************************************************************************
         // Test Case 1: Instruction Fetch
         // ************************************************************************
         New_Test("Instruction Fetch");
+        Reset_DUT();
+        Reset_Input();
+
+
+
+        Check_Ram_Outputs('0, '0, '0, '0);
 
         // ************************************************************************
         // Test Case 2: PrRd with no snoopy hit
         // ************************************************************************
         New_Test("PrRd with no snoopy hit");
+        Reset_DUT();
+        Reset_Input();
 
         // ************************************************************************
         // Test Case 3: PrRd with snoopy hit
         // ************************************************************************
         New_Test("PrRd with snoopy hit");
+        Reset_DUT();
+        Reset_Input();
 
         // ************************************************************************
         // Test Case 4: PrWr with no snoopy hit
         // ************************************************************************
         New_Test("PrWr with no snoopy hit");
+        Reset_DUT();
+        Reset_Input();
 
         // ************************************************************************
         // Test Case 5: PrWr with snoopy hit
         // ************************************************************************
         New_Test("PrWr with snoopy hit");
+        Reset_DUT();
+        Reset_Input();
 
         // ************************************************************************
         // Test Case 6: Flush
         // ************************************************************************
         New_Test("Flush to RAM");
+        Reset_DUT();
+        Reset_Input();
 
+
+        $display("Passed %0d / %0d", passed, total);
         $finish();
     end
 
@@ -197,8 +220,66 @@ program test(
     input logic [1:0] dwait;
     input word_t [1:0] dload;
     begin
-        
-        total = total + 1;
+        // I-CACHE
+        assert (
+            iwait == {ccif.cif1.iwait, ccif.cif0.iwait}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", iwait);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", iwait, {ccif.cif1.iwait, ccif.cif0.iwait});
+        end
+        assert (
+            iload == {ccif.cif1.iload, ccif.cif0.iload}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", iload);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %h, GOT %h", iload, {ccif.cif1.iload, ccif.cif0.iload});
+        end
+
+        // D-CACHE
+        assert (
+            dwait == {ccif.cif1.dwait, ccif.cif0.dwait}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", dwait);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", dwait, {ccif.cif1.dwait, ccif.cif0.dwait});
+        end
+        assert (
+            dload == {ccif.cif1.dload, ccif.cif0.dload}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", dload);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %h, GOT %h", dload, {ccif.cif1.dload, ccif.cif0.dload});
+        end
+        total = total + 4;
     end
     endtask
 
@@ -208,8 +289,63 @@ program test(
     input word_t [1:0] ramaddr;
     input word_t [1:0] ramstore;
     begin
-
-        total = total + 1;
+        assert (
+            ramREN == {ccif.cif1.ramREN, ccif.cif0.ramREN}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", ramREN);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", ramREN, {ccif.cif1.ramREN, ccif.cif0.ramREN});
+        end
+        assert (
+            ramWEN == {ccif.cif1.ramWEN, ccif.cif0.ramWEN}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", ramWEN);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %h, GOT %h", ramWEN, {ccif.cif1.ramWEN, ccif.cif0.ramWEN});
+        end
+        assert (
+            ramaddr == {ccif.cif1.ramaddr, ccif.cif0.ramaddr}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", ramaddr);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", ramaddr, {ccif.cif1.ramaddr, ccif.cif0.ramaddr});
+        end
+        assert (
+            ramstore == {ccif.cif1.ramstore, ccif.cif0.ramstore}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", ramstore);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %h, GOT %h", ramstore, {ccif.cif1.ramstore, ccif.cif0.ramstore});
+        end
+        total = total + 4;
     end
     endtask
 
@@ -218,8 +354,49 @@ program test(
     input logic [1:0] ccinv;
     input word_t [1:0] ccsnoopaddr;
     begin
-
-        total = total + 1;
+        assert (
+            ccwait == {ccif.cif1.ccwait, ccif.cif0.ccwait}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", ccwait);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", ccwait, {ccif.cif1.ccwait, ccif.cif0.ccwait});
+        end
+        assert (
+            ccinv == {ccif.cif1.ccinv, ccif.cif0.ccinv}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%h", ccinv);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %h, GOT %h", ccinv, {ccif.cif1.ccinv, ccif.cif0.ccinv});
+        end
+        assert (
+            ccsnoopaddr == {ccif.cif1.ccsnoopaddr, ccif.cif0.ccsnoopaddr}
+        ) begin
+            $write("%c[1;32m",27);
+            $write("PASSED ");
+            $write("%c[0m",27);
+            $display("%b", ccsnoopaddr);
+            passed = passed + 1;
+        end else begin
+            $write("%c[1;31m",27);
+            $write("FAILED ");
+            $write("%c[0m",27);
+            $display("EXPECTED %b, GOT %b", ccsnoopaddr, {ccif.cif1.ccsnoopaddr, ccif.cif0.ccsnoopaddr});
+        end
+        total = total + 3;
     end
     endtask
 endprogram
