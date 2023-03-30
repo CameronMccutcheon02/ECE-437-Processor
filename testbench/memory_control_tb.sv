@@ -1,6 +1,9 @@
 `include "cache_control_if.vh"
 `include "caches_if.vh"
 `include "cpu_ram_if.vh"
+`include "cpu_types_pkg.vh"
+
+import cpu_types_pkg::*;
 
 `timescale 1 ns / 1 ns
 
