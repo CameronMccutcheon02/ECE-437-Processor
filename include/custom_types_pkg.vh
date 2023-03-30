@@ -135,7 +135,7 @@ package custom_types_pkg;
     typedef enum logic [3:0] {
         IDLE,
         PRRD,
-        BUSRD1
+        BUSRD1,
         BUSRD2,
         BUSWB1,
         BUSWB2,
@@ -147,6 +147,7 @@ package custom_types_pkg;
         BUSWBX2,
 
         IMEM,
+        CACWB
     } memory_control_t 
 
 endpackage

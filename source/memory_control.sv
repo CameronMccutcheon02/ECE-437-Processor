@@ -128,33 +128,118 @@ modport cc
     endcase
   end
 
-  always_comb begin: OUT_LOGIC
-  /*
-    // cache outputs
-    output  iwait, dwait, iload, dload,
-    // ram outputs
-    ramstore, ramaddr, ramWEN, ramREN,
-    // coherence outputs to cache
-    ccwait, ccinv, ccsnoopaddr
-  */
-    ccif.iwait = 1'b1;
-    ccif.dwait = 1'b1;
-    ccif.iload = '0;
-    ccif.dload = '0;
+always_comb begin: OUT_LOGIC
+/*
+  // cache outputs
+  output  iwait, dwait, iload, dload,
+  // ram outputs
+  ramstore, ramaddr, ramWEN, ramREN,
+  // coherence outputs to cache
+  ccwait, ccinv, ccsnoopaddr
+*/
 
-    ccif.ramstore = '0;
-    ccif.ramaddr = '0;
-    ccif.ramWEN = 1'b0;
-    ccif.ramREN = 1'b0;
+  //Set defaults for cache inputs
+  ccif.iwait = 2'b11;
+  ccif.dwait = 2'b11;
+  ccif.iload[0] = '0;
+  ccif.iload[1] = '0;
+  ccif.dload[0] = '0;
+  ccif.dload[1] = '0;
 
-    ccif.ccwait = 1'b0;
-    ccif.ccinv = 1'b0;
-    ccif.ccsnoopaddr = '0;
+  ccif.ramstore = '0;
+  ccif.ramaddr = '0;
+  ccif.ramWEN = 1'b0;
+  ccif.ramREN = 1'b0;
 
-    case (mc_state)
+  //Set coherence defaults
+  ccif.ccwait[0] = 1'b0;
+  ccif.ccwait[1] = 1'b0;
+  ccif.ccinv[0] = 1'b0;
+  ccif.ccinv[1] = 1'b0;
+  ccif.ccsnoopaddr[0] = '0;
+  ccif.ccsnoopaddr[1] = '0;
 
-    endcase
-  end
+  case (mc_state)
+
+    //Read path handling
+    PRRD: begin
+      ccif.ccsnoopaddr[~mc.arb] = ccif.daddr[mc.arb]; //snoop into opposing cache
+    end
+
+    BUSRD1: begin //read from main mem
+      ccif.ramaddr = ccif.daddr[mc.arb];
+      ccif.ramREN = 1'b1;
+      ccif.dload[mc.arb] = ccif.ramload;
+    end
+
+    BUSRD2: begin //read from main mem
+      ccif.ramaddr = ccif.daddr[mc.arb]; 
+      ccif.ramREN = 1'b1;
+      ccif.dload[mc.arb] = ccif.ramload;
+    end
+
+    BUSWB1: begin //read from other cache, write to main mem
+      ccif.ramaddr =  ccif.daddr[mc.arb];
+      ccif.ramWEN =   1'b1;
+      ccif.ramstore =   ccif.dstore[~mc.arb];
+      ccif.ccsnoopaddr[~mc.arb] =   ccif.daddr[mc.arb];
+      ccif.dload[mc.arb] = ccif.dstore[~mc.arb];
+    end
+
+    BUSWB2: begin
+      ccif.ramaddr =  ccif.daddr[mc.arb];
+      ccif.ramWEN =   1'b1;
+      ccif.ramstore =   ccif.dstore[~mc.arb];
+
+      ccif.ccsnoopaddr[~mc.arb] =   ccif.daddr[mc.arb];
+      ccif.dload[mc.arb] =  ccif.dstore[~mc.arb];
+    end
+
+
+    //Write path handling
+    PRWR: begin
+      ccif.ccsnoopaddr[~mc.arb] = ccif.daddr[mc.arb];
+    end
+
+    BUSRDX1:  begin
+      ccif.ramaddr =  ccif.daddr[mc.arb];
+      ccif.ramREN =   1'b1;
+      ccif.dload = ccif.ramload;
+    end
+
+    BUSRDX2:  begin
+      ccif.ramaddr =  ccif.daddr[mc.arb];
+      ccif.ramREN =   1'b1;
+      ccif.dload = ccif.ramload;
+
+      ccif.ccinv[~mc.arb] = 1'b1;
+    end
+
+    BUSWBX1:  begin
+      ccif.ccsnoopaddr = ccif.daddr[mc.arb];
+      ccif.dload[mc.arb] = ccif.dstore[~mc.arb];
+    end
+
+    BUSWBX2:  begin
+      ccif.ccsnoopaddr = ccif.daddr[mc.arb];
+      ccif.dload[mc.arb] = ccif.dstore[~mc.arb];
+      ccif.ccinv[~mc.arb] = 1'b1;
+    end
+
+
+    IMEM: begin
+      ccif.ramaddr = ccif.iaddr[mc.arb];
+      ccif.ramREN = 1'b1;
+      ccif.iload[mc.arb] = ccif.ramload;
+    end
+    CACWB: begin
+      ccif.ramaddr = ccif.daddr[mc.arb];
+      ccif.ramWEN = 1'b1;
+      ccif.ramstore = ccif.dstore[mc.arb];
+    end
+
+  endcase
+end
 
 always_comb begin : arbiternextlogic
     next_mc.arb = mc.arb;
