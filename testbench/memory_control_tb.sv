@@ -328,6 +328,23 @@ program test(
 
 
         $display("Passed %0d / %0d", passed, total);
+
+
+        // ************************************************************************
+        // Test Case 7: Arbitration test
+        // ************************************************************************
+        New_Test("PrWr with snoopy hit");
+        Reset_Input();
+        Reset_DUT();
+
+        cache_read(.daddr(700), .cache_num(0));
+        cache_read(.daddr(750), .cache_num(1));
+        
+
+        @(posedge CLK); //should be in service for cache 1
+        @(posedge CLK);
+
+        Check_Coherence_Outputs(.ccwait(2'b10), .ccinv(2'b00), .ccsnoopaddr('0));
         $finish();
     end
 
