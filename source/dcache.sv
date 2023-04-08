@@ -151,15 +151,15 @@ always_comb begin : memory_read_write_logic
     //coherence handlers
     if(cif.ccwait) begin //if we are doing a transaction for the bus, we need to make sure we do it here
         for (int i = 0; i < ASCT; i++) begin
-                    if (dcache[snoopaddr.idx].frame[i].tag == snoopaddr.tag && dcache[snoopaddr.idx].frame[i].valid) begin
-                        cif.ccwrite = 1'b1; //if we get a hit in the cache, tell the bus we have it
-                        dcif.dmemstore = dcache[snoopaddr.idx].frame[i].data[snoopaddr.blkoff];
-                        if(cif.ccinv) 
-                            nxt_dcache[snoopaddr.idx].frame[i].valid = 1'b0;
+            if (dcache[snoopaddr.idx].frame[i].tag == snoopaddr.tag && dcache[snoopaddr.idx].frame[i].valid) begin
+                cif.ccwrite = 1'b1; //if we get a hit in the cache, tell the bus we have it
+                cif.dstore = dcache[snoopaddr.idx].frame[i].data[snoopaddr.blkoff];
+                if(cif.ccinv) 
+                    nxt_dcache[snoopaddr.idx].frame[i].valid = 1'b0;
 
-                        nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
-                    end
-                end
+                nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
+            end
+        end
     end
 
 
