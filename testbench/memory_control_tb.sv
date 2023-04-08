@@ -337,14 +337,20 @@ program test(
         Reset_Input();
         Reset_DUT();
 
+        @(negedge CLK);
         cache_read(.daddr(700), .cache_num(0));
         cache_read(.daddr(750), .cache_num(1));
         
 
-        @(posedge CLK); //should be in service for cache 1
-        @(posedge CLK);
+        @(posedge CLK); //should be in service for cache 0
+        //PrRd
+        Check_Coherence_Outputs(.ccwait(2'b10), .ccinv(2'b00), .ccsnoopaddr({32'd700, 32'd0}));
 
-        Check_Coherence_Outputs(.ccwait(2'b10), .ccinv(2'b00), .ccsnoopaddr('0));
+        @(posedge CLK);
+        //BusRd1
+
+        Check_Coherence_Outputs(.ccwait(2'b00), .ccinv(2'b00), .ccsnoopaddr('0));
+        @(posedge CLK);
         $finish();
     end
 
@@ -679,8 +685,8 @@ program test(
     input word_t daddr; 
     input logic cache_num;
     begin
-        ccif.cif0.dREN = cache_num == 0 ? 1 : 0;
-        ccif.cif1.dREN = cache_num == 1 ? 1 : 0;
+        ccif.cif0.dREN = cache_num == 0 ? 1 : ccif.cif0.dREN;
+        ccif.cif1.dREN = cache_num == 1 ? 1 : ccif.cif1.dREN;
 
         ccif.cif0.daddr = cache_num == 0 ? daddr : ccif.cif0.daddr;
         ccif.cif1.daddr = cache_num == 1 ? daddr : ccif.cif1.daddr;
@@ -692,8 +698,8 @@ program test(
     input word_t dstore; 
     input logic cache_num;
     begin
-        ccif.cif0.dWEN = cache_num == 0 ? 1 : 0;
-        ccif.cif1.dWEN = cache_num == 1 ? 1 : 0;
+        ccif.cif0.dWEN = cache_num == 0 ? 1 : ccif.cif0.dWEN;
+        ccif.cif1.dWEN = cache_num == 1 ? 1 : ccif.cif1.dWEN;
 
         ccif.cif0.daddr = cache_num == 0 ? daddr : ccif.cif0.daddr;
         ccif.cif1.daddr = cache_num == 1 ? daddr : ccif.cif1.daddr;

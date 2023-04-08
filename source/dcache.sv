@@ -49,6 +49,9 @@ module dcache (
     dcachef_t addr;
     assign addr = dcachef_t'(dcif.dmemaddr);
 
+    dcachef_t snoopaddr;
+    assign snoopaddr = dcachef_t'(cif.ccsnoopaddr);
+
     logic [TGSZ-1:0] datapath_tag;
     assign datapath_tag = addr.tag; //dcif.dmemaddr[31:31-TGSZ+1];
 
@@ -141,6 +144,27 @@ always_comb begin : memory_read_write_logic
     miss = 1;
     dirty = 0;
     valid = 0;
+    //coherence defaults
+    cif.ccwrite = 0;
+    cif.cctrans = 0;
+
+    //coherence handlers
+    if(cif.ccwait) begin //if we are doing a transaction for the bus, we need to make sure we do it here
+        for (int i = 0; i < ASCT; i++) begin
+                    if (dcache[snoopaddr.idx].frame[i].tag == snoopaddr.tag && dcache[snoopaddr.idx].frame[i].valid) begin
+                        cif.ccwrite = 1'b1; //if we get a hit in the cache, tell the bus we have it
+                        dcif.dmemstore = dcache[snoopaddr.idx].frame[i].data[snoopaddr.blkoff];
+                        if(cif.ccinv) 
+                            nxt_dcache[snoopaddr.idx].frame[i].valid = 1'b0;
+
+                        nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
+                    end
+                end
+    end
+
+
+    //normal transaction handlings
+    else begin
     case(cur_state)  
         IDLE: begin
             if (dcif.halt) begin
@@ -231,6 +255,7 @@ always_comb begin : memory_read_write_logic
 
         end
     endcase
+    end
 end
 
 endmodule
