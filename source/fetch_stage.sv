@@ -26,7 +26,7 @@ module fetch_stage(
     branch_predictor_if bpif();
 
     // initialize DUTs
-    program_counter #(PC_INIT(.PC_INIT)) PC(CLK, nRST, pcif);
+    program_counter #(.PC_INIT(PC_INIT)) PC(CLK, nRST, pcif);
     branch_predictor BP(CLK, nRST, bpif);
 
     // declare local variables
