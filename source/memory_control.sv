@@ -132,6 +132,10 @@ modport cc
       CACWB: next_mc_state = (ccif.ramstate == ACCESS) ? IDLE : mc_state;
       
     endcase
+
+    if (ccif.cctrans != 0) 
+      next_mc_state = mc_state;
+
   end
 
   always_comb begin: OUT_LOGIC
@@ -161,7 +165,18 @@ modport cc
     ccif.ccinv  = '0;
     ccif.ccsnoopaddr = '0;
 
-    case (mc_state)
+    if (ccif.cctrans[0] == 1) begin
+      ccif.ccsnoopaddr[1] = ccif.daddr[0];
+      ccif.ccinv = 2'b10;
+      ccif.ccwait = 2'b10;
+    end 
+    else if (ccif.cctrans[1] == 1) begin
+      ccif.ccsnoopaddr[0] = ccif.daddr[1];
+      ccif.ccinv = 2'b01;
+      ccif.ccwait = 2'b01;
+    end 
+    else begin 
+      case (mc_state)
 
       /********************
       * Read path handling
@@ -303,11 +318,13 @@ modport cc
         ccif.ramWEN   = 1'b1;
         ccif.ramaddr  = ccif.daddr[mc.arb];
         ccif.ramstore = ccif.dstore[mc.arb];
+        ccif.ccinv[~mc.arb]       = 1'b1;
 
         ccif.dwait[mc.arb] = ~(ccif.ramstate == ACCESS);
       end
 
     endcase
+    end
   end
 
   always_comb begin : arbiternextlogic

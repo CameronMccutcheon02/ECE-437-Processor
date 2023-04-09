@@ -97,34 +97,36 @@ end
 always_comb begin : nxt_state_logic
     nxt_row = row;
     nxt_state = cur_state;
-    case(cur_state)
-        IDLE: begin 
-                if(dcif.halt) nxt_state = FLCTR;
-                if (dcif.dmemREN | dcif.dmemWEN) begin //dcif 
-                    if(miss & (~dirty | ~valid)) nxt_state = R1M;
-                    else if(miss & valid & dirty) nxt_state = WB1;
-                end
-        end
-        WB1:    nxt_state = (~cif.dwait) ? WB2 : WB1;
-        WB2:    nxt_state = (~cif.dwait) ? R1M : WB2;
-        R1M:    nxt_state = (~cif.dwait) ? R2M : R1M;
-        R2M:    nxt_state = (~cif.dwait) ? IDLE : R2M;
-        FLCTR: begin
-                nxt_row = row;
-                nxt_state = cur_state;
-                if (dcache[row[3:1]].frame[row[0]].dirty) begin
-                    nxt_state = FL1;
-                end else begin
-                    nxt_row = row + 1;
-                end
-                if (row == 4'd15 && nxt_row == 0)
-                    nxt_state = CNTW;
-        end
-        FL1:    nxt_state = (~cif.dwait) ? FL2 : FL1;
-        FL2:    nxt_state = (~cif.dwait) ? FLCTR: FL2;
-        CNTW:   nxt_state = (~cif.dwait) ? STOP : CNTW;
-        STOP:   nxt_state = STOP;
-    endcase
+    if (~cif.ccwait) begin
+        case(cur_state)
+            IDLE: begin 
+                    if(dcif.halt) nxt_state = FLCTR;
+                    if (dcif.dmemREN | dcif.dmemWEN) begin //dcif 
+                        if(miss & (~dirty | ~valid)) nxt_state = R1M;
+                        else if(miss & valid & dirty) nxt_state = WB1;
+                    end
+            end
+            WB1:    nxt_state = (~cif.dwait) ? WB2 : WB1;
+            WB2:    nxt_state = (~cif.dwait) ? R1M : WB2;
+            R1M:    nxt_state = (~cif.dwait) ? R2M : R1M;
+            R2M:    nxt_state = (~cif.dwait) ? IDLE : R2M;
+            FLCTR: begin
+                    nxt_row = row;
+                    nxt_state = cur_state;
+                    if (dcache[row[3:1]].frame[row[0]].dirty) begin
+                        nxt_state = FL1;
+                    end else begin
+                        nxt_row = row + 1;
+                    end
+                    if (row == 4'd15 && nxt_row == 0)
+                        nxt_state = CNTW;
+            end
+            FL1:    nxt_state = (~cif.dwait) ? FL2 : FL1;
+            FL2:    nxt_state = (~cif.dwait) ? FLCTR: FL2;
+            CNTW:   nxt_state = (~cif.dwait) ? STOP : CNTW;
+            STOP:   nxt_state = STOP;
+        endcase
+    end
 end
 
 always_comb begin : memory_read_write_logic
@@ -195,8 +197,9 @@ always_comb begin : memory_read_write_logic
                         nxt_dcache[datapath_index].frame[i].dirty = 1;
 
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
-                        if (prev_state != R2M)
-                            nxt_hit_count = hit_count + 1;
+
+                        cif.cctrans = 1;
+                        cif.daddr = dcif.dmemaddr;
                         break;
                     end
                 end
@@ -213,6 +216,7 @@ always_comb begin : memory_read_write_logic
             cif.daddr = {datapath_tag, datapath_index, 1'b0, 2'b00};
             if (~cif.dwait) begin 
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].data[0] = cif.dload;
+                nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].valid = 1'b1;
             end
         end
         R2M:    begin
@@ -220,7 +224,6 @@ always_comb begin : memory_read_write_logic
             cif.daddr = {datapath_tag, datapath_index, 1'b1, 2'b00};
             if (~cif.dwait) begin
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].data[1] = cif.dload;
-                nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].valid = 1'b1;
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].tag = datapath_tag;
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].dirty = 1'b0;
             end

@@ -14,7 +14,7 @@ add wave -noupdate -expand -group scif /system_tb/DUT/CPU/scif/memWEN
 add wave -noupdate -expand -group scif /system_tb/DUT/CPU/scif/memaddr
 add wave -noupdate -expand -group scif /system_tb/DUT/CPU/scif/memstore
 add wave -noupdate -divider CPU0
-add wave -noupdate -radix symbolic /system_tb/DUT/CPU/DP0/DC/Instruction
+add wave -noupdate -radix hexadecimal /system_tb/DUT/CPU/DP0/DC/Instruction
 add wave -noupdate /system_tb/DUT/CPU/DP0/DC/op
 add wave -noupdate /system_tb/DUT/CPU/DP0/DC/func
 add wave -noupdate -group DCACHE0 /system_tb/DUT/CPU/CM0/DCACHE/cur_state
@@ -48,25 +48,63 @@ add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/flushed
 add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemload
 add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemstore
 add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemaddr
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iwait
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dwait
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iREN
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dREN
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dWEN
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iload
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dload
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dstore
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iaddr
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/daddr
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccwait
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccinv
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccwrite
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/cctrans
-add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccsnoopaddr
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/iwait
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/dwait
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/iREN
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/dREN
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/dWEN
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/iload
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/dload
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/dstore
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/iaddr
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/daddr
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/ccwait
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/ccinv
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/ccwrite
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/cctrans
+add wave -noupdate -expand -group cif0 /system_tb/DUT/CPU/cif0/ccsnoopaddr
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/ihit
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dhit
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/flush
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/freeze
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/execute_p
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dmemload
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/memory_p
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dmemaddr
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dmemstore
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dmemREN
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/dmemWEN
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/BranchAddr
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/JumpAddr
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/port_a
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/JumpSel
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/BranchTaken
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/branch_mispredict
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/PC
+add wave -noupdate -group memstage0 /system_tb/DUT/CPU/DP0/MM/mmif/forwarding_unit_data
 add wave -noupdate -divider CPU1
 add wave -noupdate /system_tb/DUT/CPU/DP1/DC/Instruction
 add wave -noupdate /system_tb/DUT/CPU/DP1/DC/op
 add wave -noupdate /system_tb/DUT/CPU/DP1/DC/func
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/ihit
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dhit
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/flush
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/freeze
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/execute_p
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dmemload
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/memory_p
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dmemaddr
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dmemstore
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dmemREN
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/dmemWEN
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/BranchAddr
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/JumpAddr
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/port_a
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/JumpSel
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/BranchTaken
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/branch_mispredict
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/PC
+add wave -noupdate -group memstage1 /system_tb/DUT/CPU/DP1/MM/mmif/forwarding_unit_data
 add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/halt
 add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/ihit
 add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemREN
@@ -113,10 +151,35 @@ add wave -noupdate -group DCACHE1 /system_tb/DUT/CPU/CM1/DCACHE/nxt_hit_count
 add wave -noupdate -group DCACHE1 /system_tb/DUT/CPU/CM1/DCACHE/miss
 add wave -noupdate -group DCACHE1 /system_tb/DUT/CPU/CM1/DCACHE/valid
 add wave -noupdate -group DCACHE1 /system_tb/DUT/CPU/CM1/DCACHE/dirty
+add wave -noupdate -divider BUS
+add wave -noupdate /system_tb/DUT/CPU/CC/mc_state
+add wave -noupdate /system_tb/DUT/CPU/CC/next_mc_state
+add wave -noupdate /system_tb/DUT/CPU/CC/mc
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/iwait
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/dwait
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/iREN
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/dREN
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/dWEN
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/iload
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/dload
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/dstore
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/iaddr
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/daddr
+add wave -noupdate -expand -group Bus -expand -group Coherence /system_tb/DUT/CPU/ccif/ccwait
+add wave -noupdate -expand -group Bus -expand -group Coherence /system_tb/DUT/CPU/ccif/ccinv
+add wave -noupdate -expand -group Bus -expand -group Coherence /system_tb/DUT/CPU/ccif/ccwrite
+add wave -noupdate -expand -group Bus -expand -group Coherence /system_tb/DUT/CPU/ccif/cctrans
+add wave -noupdate -expand -group Bus -expand -group Coherence /system_tb/DUT/CPU/ccif/ccsnoopaddr
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramWEN
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramREN
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramstate
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramaddr
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramstore
+add wave -noupdate -expand -group Bus /system_tb/DUT/CPU/ccif/ramload
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors {{Cursor 1} {386917 ps} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 150
+configure wave -namecolwidth 191
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -130,4 +193,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {2601385 ps}
+WaveRestoreZoom {232 ns} {1077 ns}
