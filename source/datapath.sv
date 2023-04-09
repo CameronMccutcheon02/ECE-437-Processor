@@ -42,7 +42,7 @@ module datapath (
   forwarding_unit_if fwif();
 
 	// DUT
-	fetch_stage FT(CLK, nRST, ftif);
+	fetch_stage #(.PC_INIT(PC_INIT)) FT(CLK, nRST, ftif);
 	decode_stage DC(CLK, nRST, dcif);
 	execute_stage EX(CLK, nRST, exif);
 	memory_stage MM(CLK, nRST, mmif);

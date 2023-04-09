@@ -12,6 +12,8 @@ module fetch_stage(
     fetch_if.FT ftif
 );
 
+    parameter PC_INIT = 0;
+
     //grab all the structs values
     import cpu_types_pkg::*;
     import custom_types_pkg::*;
@@ -24,7 +26,7 @@ module fetch_stage(
     branch_predictor_if bpif();
 
     // initialize DUTs
-    program_counter PC(CLK, nRST, pcif);
+    program_counter #(PC_INIT(PC_INIT)) PC(CLK, nRST, pcif);
     branch_predictor BP(CLK, nRST, bpif);
 
     // declare local variables
