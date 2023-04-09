@@ -154,6 +154,7 @@ always_comb begin : memory_read_write_logic
             if (dcache[snoopaddr.idx].frame[i].tag == snoopaddr.tag && dcache[snoopaddr.idx].frame[i].valid) begin
                 cif.ccwrite = 1'b1; //if we get a hit in the cache, tell the bus we have it
                 cif.dstore = dcache[snoopaddr.idx].frame[i].data[snoopaddr.blkoff];
+                cif.daddr = cif.ccsnoopaddr;
                 if(cif.ccinv) 
                     nxt_dcache[snoopaddr.idx].frame[i].valid = 1'b0;
 
