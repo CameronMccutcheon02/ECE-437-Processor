@@ -25,9 +25,9 @@ module dcache_tb;
     datapath_cache_if dcif();
     caches_if cif();
     
-    //dcache DUT(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
+    dcache DUT(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
 
-   // test PROG(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
+    test PROG(.CLK(CLK), .nRST(nRST), .dcif(dcif), .cif(cif));
 
 
 endmodule
@@ -88,6 +88,9 @@ task set_to_idle;
 
     cif.dwait = 0;
     cif.dload = 0;
+
+    cif.ccwait = 0;
+    cif.ccinv = 0;
 
     @(posedge CLK);
   end
@@ -352,8 +355,36 @@ initial begin
 
   dcif.halt = 1;
 
-  while(cif.daddr != 32'h00003100)
+  repeat(200)
     @(negedge CLK);
+
+
+  // ************************************************************************
+  // Test Case 7: Snooping test
+  // ************************************************************************
+  tb_test_case = "Snooping Test";
+  set_to_idle();
+  reset_dut();
+
+  mem_data[0] = 69; 
+  mem_data[1] = 42;
+  datapath_tag = 17;
+  send_data = 52;
+
+  //update a location in memory
+  write_transaction(.datapath_tag(datapath_tag), .datapath_index(0), .datapath_block_offset(0), 
+  .mem_data(mem_data), .exp_data(mem_data[0]),
+  .send_data(send_data));
+  set_to_idle();
+
+  @(posedge CLK);
+
+  //Snoop into that location
+  cif.ccsnoopaddr = {datapath_tag, 3'b000, 1'b0, 2'b00};
+  cif.ccwait = 1;
+  @(posedge CLK);
+
+
   
 
 

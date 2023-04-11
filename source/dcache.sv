@@ -119,7 +119,7 @@ always_comb begin : nxt_state_logic
                         nxt_row = row + 1;
                     end
                     if (row == 4'd15 && nxt_row == 0)
-                        nxt_state = CNTW;
+                        nxt_state = STOP;
             end
             FL1:    nxt_state = (~cif.dwait) ? FL2 : FL1;
             FL2:    nxt_state = (~cif.dwait) ? FLCTR: FL2;
@@ -159,6 +159,8 @@ always_comb begin : memory_read_write_logic
                 cif.daddr = cif.ccsnoopaddr;
                 if(cif.ccinv) 
                     nxt_dcache[snoopaddr.idx].frame[i].valid = 1'b0;
+                else 
+                    nxt_dcache[snoopaddr.idx].frame[i].dirty = 1'b0;
 
                 nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
             end
