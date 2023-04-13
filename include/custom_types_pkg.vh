@@ -143,7 +143,7 @@ package custom_types_pkg;
         STOP 
     } dcache_t;
 
-    typdef struct packed {
+    typedef struct packed {
         regbits_t addr;
         logic valid;
     } lr_t;

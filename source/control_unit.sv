@@ -144,6 +144,8 @@ module control_unit (
                 cuif.atomic = 1'b1;
             end
             SC: begin
+                cuif.RegWEN = 1'b1;
+                cuif.MemtoReg = 2'd2;
                 cuif.dWEN = 1'b1;
                 cuif.ALUSrc = 1'b1;
                 cuif.atomic = 1'b1;

@@ -167,6 +167,10 @@ always_comb begin : memory_read_write_logic
                 nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
             end
         end
+        if (cif.ccsnoopaddr == lr.addr) begin
+            nxt_lr.addr = '0;
+            nxt_lr.valid = 1'b0;
+        end
     end
 
 
@@ -204,6 +208,21 @@ always_comb begin : memory_read_write_logic
 
                         cif.cctrans = 1;
                         cif.daddr = dcif.dmemaddr;
+
+                        if (dcif.datomic) begin // SC instruction
+                            if (lr.addr == dcif.dmemaddr & lr.valid == 1'b1) begin // return 1 and store
+                                dcif.dmemload = 1'b1;
+                            end
+                            else if (lr.addr == dcif.dmemaddr & lr.valid == 1'b0) begin // return 0 and dont store
+                                dcif.dmemload = 1'b0;
+
+                                nxt_dcache[datapath_index].frame[i].data[datapath_block_offset] = dcache[datapath_index].frame[i].data[datapath_block_offset];
+                                nxt_dcache[datapath_index].frame[i].dirty = dcache[datapath_index].frame[i].dirty;
+
+                                nxt_dcache[datapath_index].LRU = dcache[datapath_index].LRU;
+                            end
+                        end
+
                         break;
                     end
                 end
@@ -231,6 +250,10 @@ always_comb begin : memory_read_write_logic
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].tag = datapath_tag;
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].dirty = 1'b0;
             end
+            if (dcif.datomic) begin
+                nxt_lr.valid = 1'b1;
+                nxt_lr.addr = dcif.dmemaddr;
+            end
         end
         WB1:    begin
             cif.dWEN = 1;
@@ -241,7 +264,7 @@ always_comb begin : memory_read_write_logic
             cif.dWEN = 1;
             cif.daddr   = {dcache[datapath_index].frame[dcache[datapath_index].LRU].tag, datapath_index, 1'b1, 2'b00};
             cif.dstore  = dcache[datapath_index].frame[dcache[datapath_index].LRU].data[1];
-        end       
+        end    
         FL1:    begin
             cif.dWEN = 1;
             cif.daddr = {dcache[row[3:1]].frame[row[0]].tag, row[3:1], 1'b0, 2'b00};
