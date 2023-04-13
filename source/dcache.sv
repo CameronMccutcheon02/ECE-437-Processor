@@ -195,6 +195,12 @@ always_comb begin : memory_read_write_logic
                         nxt_dcache[datapath_index].LRU = (i == 0) ? 1 : 0;
                         if (prev_state != R2M)
                             nxt_hit_count = hit_count + 1;
+
+                        if (dcif.datomic) begin //LL hit
+                            nxt_lr.valid = 1'b1;
+                            nxt_lr.addr = dcif.dmemaddr;
+                        end
+
                         break;
                     end
                 end
@@ -216,11 +222,11 @@ always_comb begin : memory_read_write_logic
 
                         if (dcif.datomic) begin // SC instruction
                             if (lr.addr == dcif.dmemaddr & lr.valid == 1'b1) begin // return 1 and store
-                                dcif.dmemload = 1'b1;
+                                dcif.dmemload = 32'b1;
                                 nxt_lr.valid = 1'b0;
                             end
                             else if (lr.addr == dcif.dmemaddr & lr.valid == 1'b0) begin // return 0 and dont store
-                                dcif.dmemload = 1'b0;
+                                dcif.dmemload = 32'b0;
 
                                 nxt_dcache[datapath_index].frame[i].data[datapath_block_offset] = dcache[datapath_index].frame[i].data[datapath_block_offset];
                                 nxt_dcache[datapath_index].frame[i].dirty = dcache[datapath_index].frame[i].dirty;
@@ -256,7 +262,7 @@ always_comb begin : memory_read_write_logic
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].tag = datapath_tag;
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].dirty = 1'b0;
             end
-            if (dcif.datomic) begin
+            if (dcif.datomic) begin //LL instruction
                 nxt_lr.valid = 1'b1;
                 nxt_lr.addr = dcif.dmemaddr;
             end
