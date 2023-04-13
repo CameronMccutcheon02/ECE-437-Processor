@@ -149,8 +149,18 @@ package custom_types_pkg;
     } lr_t;
 
     typedef struct packed {
+        logic [CACHE_W-1:0] iREN;
+        logic [CACHE_W-1:0] dREN;
+        logic [CACHE_W-1:0] dWEN;
+        word_t [CACHE_W-1:0] dstore;
+        word_t [CACHE_W-1:0] iaddr;
+        word_t [CACHE_W-1:0] daddr;
+        word_t ramload;
+        ramstate_t ramstate;
+        logic [CACHE_W-1:0] ccwrite;
+        logic [CACHE_W-1:0] cctrans; 
         logic [CACHE_W-2:0] arb;
-    } coherence_t;
+    } mc_t;
 
     typedef enum logic [3:0] {
         IDLE,
