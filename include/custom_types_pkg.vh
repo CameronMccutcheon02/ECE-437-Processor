@@ -35,16 +35,17 @@ package custom_types_pkg;
         logic ALUSrc;
         
         //Mem Layer
-        logic dREN;
-        logic dWEN;
-        logic BEQ;
-        logic BNE;
-        logic [1:0] JumpSel;
+        logic  dREN;
+        logic  dWEN;
+        logic  BEQ;
+        logic  BNE;
+        logic  [1:0] JumpSel;
         word_t JumpAddr;
         word_t Instruction;
-        logic branch_taken;
-        word_t  PC;
-        word_t  pred_branch_addr;
+        logic  branch_taken;
+        word_t PC;
+        word_t pred_branch_addr;
+        logic  atomic;
 
         //WB Layer
         regbits_t Rw;
@@ -77,6 +78,7 @@ package custom_types_pkg;
         word_t  BranchAddr;
         word_t  pred_branch_addr;
         logic   emergency_flush;
+        logic   atomic;
 
         //WB Layer
         regbits_t Rw;
@@ -125,6 +127,26 @@ package custom_types_pkg;
         word_t port_w;
 
     }   writeback_t;
+
+    typedef enum logic [3:0] { 
+        LAZY, 
+        WB1, 
+        WB2, 
+        R1M, 
+        R2M,
+
+        FLCTR, 
+        FL1, 
+        FL2,
+
+        CNTW, 
+        STOP 
+    } dcache_t;
+
+    typdef struct packed {
+        regbits_t addr;
+        logic valid;
+    } lr_t;
 
     typedef struct packed {
         logic [CACHE_W-2:0] arb;

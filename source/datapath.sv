@@ -64,6 +64,7 @@ module datapath (
     
 		dpif.imemREN = ftif.imemREN && ~exif.execute_p.halt; //if halt, stop, if 
 		dpif.imemaddr = ftif.imemaddr;
+
 		ftif.imemload = dpif.imemload;
 
 		// data memory
@@ -71,7 +72,10 @@ module datapath (
 		dpif.dmemWEN = mmif.dmemWEN;
 		dpif.dmemstore = mmif.dmemstore;
 		dpif.dmemaddr = mmif.dmemaddr;
+    dpif.datomic = mmif.atomic;
+
 		mmif.dmemload = dpif.dmemload;
+  
 	end
 
 	always_ff @(posedge CLK, negedge nRST) begin: Datapath_Reg_Logic

@@ -22,6 +22,7 @@ module control_unit (
         cuif.dWEN = 1'b0;
         cuif.BEQ = 1'b0;
         cuif.BNE = 1'b0;
+        cuif.atomic = 1'b0;
         case (cuif.opcode)
             // rtype
             RTYPE: begin
@@ -134,6 +135,18 @@ module control_unit (
                 cuif.ALUSrc = 1'b1;
                 cuif.ALUctr = ALU_XOR;
                 cuif.ExtOP = 2'b00;
+            end
+            LL: begin
+                cuif.RegWEN = 1'b1;
+                cuif.dREN = 1'b1;
+                cuif.ALUSrc = 1'b1;
+                cuif.MemtoReg = 2'd2;
+                cuif.atomic = 1'b1;
+            end
+            SC: begin
+                cuif.dWEN = 1'b1;
+                cuif.ALUSrc = 1'b1;
+                cuif.atomic = 1'b1;
             end
 
             // jtype

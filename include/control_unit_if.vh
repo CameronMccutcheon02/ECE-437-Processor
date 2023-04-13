@@ -11,20 +11,20 @@ interface control_unit_if;
     aluop_t ALUctr;
     logic ihit, dhit, zero;
     logic jal, RegDst, RegWEN, ALUSrc, BEQ, BNE,
-          halt, iREN, dREN, dWEN;
+          halt, iREN, dREN, dWEN, atomic;
     logic [1:0] MemtoReg;
     logic [1:0] JumpSel; 
     logic [1:0] ExtOP;
      
     modport cu (
         input opcode, func, ihit, dhit,
-        output JumpSel, jal, RegDst, RegWEN, ALUSrc, BEQ, BNE,
-               ALUctr, MemtoReg, ExtOP, halt, iREN, dREN, dWEN
+        output JumpSel, jal, RegDst, RegWEN, ALUSrc, BEQ, BNE, ALUctr, 
+        MemtoReg, ExtOP, halt, iREN, dREN, dWEN, atomic
     );
 
     modport tb (
-        input JumpSel, jal, RegDst, RegWEN, ALUSrc, BEQ, BNE,
-              ALUctr, MemtoReg, ExtOP, halt, iREN, dREN, dWEN,
+        input JumpSel, jal, RegDst, RegWEN, ALUSrc, BEQ, BNE, ALUctr, 
+        MemtoReg, ExtOP, halt, iREN, dREN, dWEN, atomic,
         output opcode, func, ihit, dhit
     );
 

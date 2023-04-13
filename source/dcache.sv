@@ -6,7 +6,10 @@
 
 // cpu types
 `include "cpu_types_pkg.vh"
+`include "custom_types_pkg.vh"
+
 import cpu_types_pkg::*;
+import custom_types_pkg::*;
 
 module dcache (
     input logic CLK, nRST,
@@ -15,8 +18,7 @@ module dcache (
 );
 
 //Struct and data container declarations
-    typedef enum logic [3:0] { IDLE, WB1, WB2, R1M, R2M, FLCTR, FL1, FL2, CNTW, STOP } CacheState;
-    CacheState cur_state, nxt_state, prev_state;
+    dcache_t cur_state, nxt_state, prev_state;
 
     localparam ASCT = 2; //sets associativity constant
     localparam BLKSZ = 2; //sets number of data words per block
@@ -37,11 +39,6 @@ module dcache (
     set_struct [CCSZ-1:0] dcache;
     set_struct [CCSZ-1:0] nxt_dcache;
 
-    //frame_struct cache [CCSZ:0][ASCT-1:0];
-    //frame_struct nxt_cache [CCSZ:0][ASCT-1:0];
-
-    //logic LRU [CCSZ:0]; //least recently used associative block FSM
-    //logic nxt_LRU [CCSZ:0]; //least recently used associative block FSM
 //********************************************************************\\
 
 
@@ -73,16 +70,20 @@ module dcache (
 
     logic miss;
     logic valid, dirty; //easy to grab copies of the valid and dirty bits of the currently accessed cache val
+
+    lr_t lr, nxt_lr; // link register attached to the cache
+
 //********************************************************************\\
 
 
 always_ff @(posedge CLK, negedge nRST) begin : clockblock
     if(~nRST) begin
-        cur_state <= IDLE;
-        prev_state <= IDLE;
+        cur_state <= LAZY;
+        prev_state <= LAZY;
         dcache <= '0;
         row <= '0;
         hit_count <= '0;
+        lr <= '0;
     end
     else begin
         prev_state <= cur_state;
@@ -90,6 +91,7 @@ always_ff @(posedge CLK, negedge nRST) begin : clockblock
         dcache <= nxt_dcache;
         row <= nxt_row;
         hit_count <= nxt_hit_count;
+        lr <= nxt_lr;
     end
 end
 
@@ -99,7 +101,7 @@ always_comb begin : nxt_state_logic
     nxt_state = cur_state;
     if (~cif.ccwait) begin
         case(cur_state)
-            IDLE: begin 
+            LAZY: begin 
                     if(dcif.halt) nxt_state = FLCTR;
                     if (dcif.dmemREN | dcif.dmemWEN) begin //dcif 
                         if(miss & (~dirty | ~valid)) nxt_state = R1M;
@@ -109,7 +111,7 @@ always_comb begin : nxt_state_logic
             WB1:    nxt_state = (~cif.dwait) ? WB2 : WB1;
             WB2:    nxt_state = (~cif.dwait) ? R1M : WB2;
             R1M:    nxt_state = (~cif.dwait) ? R2M : R1M;
-            R2M:    nxt_state = (~cif.dwait) ? IDLE : R2M;
+            R2M:    nxt_state = (~cif.dwait) ? LAZY : R2M;
             FLCTR: begin
                     nxt_row = row;
                     nxt_state = cur_state;
@@ -171,7 +173,7 @@ always_comb begin : memory_read_write_logic
     //normal transaction handlings
     else begin
     case(cur_state)  
-        IDLE: begin
+        LAZY: begin
             if (dcif.halt) begin
                 nxt_hit_count = hit_count;
             //Read Logic

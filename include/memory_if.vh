@@ -15,7 +15,7 @@ interface memory_if;
     //Outputs of stage
     memory_t memory_p;
     word_t dmemaddr, dmemstore;
-    logic dmemREN, dmemWEN;
+    logic dmemREN, dmemWEN, atomic;
     word_t BranchAddr, JumpAddr, port_a;
     logic [1:0] JumpSel;
     logic BranchTaken, branch_mispredict;
@@ -26,7 +26,7 @@ interface memory_if;
     modport MEM (
         input ihit, dhit, flush, freeze, execute_p, dmemload,
         output forwarding_unit_data,
-        output memory_p, dmemaddr, dmemstore, dmemREN, dmemWEN, 
+        output memory_p, dmemaddr, dmemstore, dmemREN, dmemWEN, atomic,
         output BranchAddr, BranchTaken, branch_mispredict, PC,
         output JumpSel, JumpAddr, port_a
     );
