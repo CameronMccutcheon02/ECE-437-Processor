@@ -144,7 +144,7 @@ package custom_types_pkg;
     } dcache_t;
 
     typedef struct packed {
-        regbits_t addr;
+        word_t addr;
         logic valid;
     } lr_t;
 
