@@ -57,6 +57,7 @@ modport cc
   always_comb begin: INPUT_LATCHING
     next_mc.iREN     = ccif.iREN;
     next_mc.dREN     = ccif.dREN;
+    next_mc.dWEN     = ccif.dWEN;
     next_mc.dstore   = ccif.dstore;
     next_mc.iaddr    = ccif.iaddr;
     next_mc.daddr    = ccif.daddr;
