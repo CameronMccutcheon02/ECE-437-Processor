@@ -85,7 +85,7 @@ modport cc
           // go to PrRd when only dREN is high
           next_mc_state = PRRD;
         
-        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb]) 
+        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb] & ccif.dWEN[mc.arb]) 
           // go to general write to bus state when dWEN is high
           next_mc_state = CACWB;
 
@@ -341,10 +341,10 @@ modport cc
   always_comb begin : arbiternextlogic
       next_mc.arb = mc.arb;
 
-      if (mc_state == IDLE && next_mc_state == IDLE) begin //make sure to only flip the arbiter bit when nothing is going on
-        if (mc.dREN[mc.arb] | mc.dWEN[mc.arb] | mc.iREN[mc.arb]) 
+      if (mc_state == IDLE) begin //make sure to only flip the arbiter bit when nothing is going on
+        if (ccif.dREN[mc.arb] | ccif.dWEN[mc.arb] | ccif.iREN[mc.arb]) 
           next_mc.arb = mc.arb;
-        else if (mc.dREN[~mc.arb] | mc.dWEN[~mc.arb] | mc.iREN[~mc.arb])
+        else if (ccif.dREN[~mc.arb] | ccif.dWEN[~mc.arb] | ccif.iREN[~mc.arb])
           next_mc.arb = ~mc.arb;
       end 
   end
