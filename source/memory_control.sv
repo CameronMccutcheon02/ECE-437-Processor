@@ -65,6 +65,7 @@ modport cc
     next_mc.ramstate = ccif.ramstate;
     next_mc.ccwrite  = ccif.ccwrite;
     next_mc.cctrans  = ccif.cctrans;
+    
   end
 
   always_comb begin: NEXT_LOGIC
@@ -78,6 +79,7 @@ modport cc
   */
 
     next_mc_state = mc_state;
+    next_mc.delay = mc.delay;
 
     case (mc_state)
       IDLE: begin
@@ -85,7 +87,7 @@ modport cc
           // go to PrRd when only dREN is high
           next_mc_state = PRRD;
         
-        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb] & ccif.dWEN[mc.arb]) 
+        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb]) //& ccif.dWEN[mc.arb]) 
           // go to general write to bus state when dWEN is high
           next_mc_state = CACWB;
 
@@ -146,6 +148,14 @@ modport cc
 
     if (mc.cctrans != 0) 
       next_mc_state = mc_state;
+
+    if (next_mc_state != mc_state) begin
+      next_mc.delay = next_mc.delay + 1;
+      if (next_mc.delay == 1)
+        next_mc_state = mc_state;
+      else 
+        next_mc.delay = 0;
+    end
 
   end
 

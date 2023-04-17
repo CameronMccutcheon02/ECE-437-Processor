@@ -160,6 +160,7 @@ package custom_types_pkg;
         logic [CACHE_W-1:0] ccwrite;
         logic [CACHE_W-1:0] cctrans; 
         logic [CACHE_W-2:0] arb;
+        logic [1:0] delay;
     } mc_t;
 
     typedef enum logic [3:0] {
