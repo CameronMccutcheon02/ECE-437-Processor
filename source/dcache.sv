@@ -154,8 +154,7 @@ always_comb begin : memory_read_write_logic
     cif.cctrans = 0;
 
     //link register
-    nxt_lr.addr = lr.addr;
-    nxt_lr.valid = lr.valid;
+    nxt_lr = lr;
 
     //coherence handlers
     if(cif.ccwait) begin //if we are doing a transaction for the bus, we need to make sure we do it here
@@ -220,10 +219,14 @@ always_comb begin : memory_read_write_logic
                         cif.cctrans = 1;
                         cif.daddr = dcif.dmemaddr;
 
+                        dcif.dmemload = (dcif.dmemaddr == lr.addr) & lr.valid;
+                        if (~dcif.datomic & lr.addr == dcif.dmemaddr) // SW
+                            nxt_lr.valid = 1'b0;
+
                         if (dcif.datomic) begin // SC instruction
                             if (lr.addr == dcif.dmemaddr & lr.valid == 1'b1) begin // return 1 and store
                                 dcif.dmemload = 32'b1;
-                                nxt_lr.valid = 1'b0;
+                                //nxt_lr.valid = 1'b0;
                             end
                             else if (lr.addr == dcif.dmemaddr & lr.valid == 1'b0) begin // return 0 and dont store
                                 dcif.dmemload = 32'b0;

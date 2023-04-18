@@ -43,7 +43,7 @@ rand:
 #----------------------------------------------------------
 # Second Processor
 #----------------------------------------------------------
-  org   0x1000              # second processor p1
+  org   0x0200              # second processor p1
   ori   $sp, $zero, 0x7ffc  # stack
   jal   consumer            # go to program
   halt
@@ -125,6 +125,11 @@ aquire:
   bne   $t0, $0, aquire     # wait on lock to be open
   addiu $t0, $t0, 1
   sc    $t0, 0($a0)
+  nop
+  nop
+  nop
+  nop
+  nop
   beq   $t0, $0, lock       # if sc failed retry
   jr    $ra                 # return to caller
 
