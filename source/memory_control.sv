@@ -78,7 +78,8 @@ modport cc
     ccif.dwait          = (next_mc_state != mc_state) ? mc.dwait : 2'b11;
     ccif.iload          = mc.iload;
     ccif.dload          = mc.dload;
-    ccif.ramWEN         = mc.ramWEN;
+    ccif.ramWEN         = mc.ramWEN; //we might be able to do something about the mergesort issue here, basically
+                                      //if we get an interrupt from innactive core (cctrans == 1) this needs to be pulled low for a sec
     ccif.ramREN         = mc.ramREN;
     ccif.ramaddr        = mc.ramaddr;
     ccif.ramstore       = mc.ramstore;

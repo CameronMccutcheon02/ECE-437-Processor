@@ -90,6 +90,9 @@ always_comb begin
          //if the branch addr from mem does not 
         //match that in the table, use the address of the mem stage and flush
     end
+
+    bpif.branch_taken = 1'b0;
+    bpif.branch_target = 32'd0;
 end
 
 
