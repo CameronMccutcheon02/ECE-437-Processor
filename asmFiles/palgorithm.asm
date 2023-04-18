@@ -3,11 +3,11 @@
 #----------------------------------------------------------
   org   0x0000              # first processor p0
   ori   $sp, $zero, 0x3ffc  # stack
-  jal   mainp0              # go to program
+  jal   producer            # go to program
   halt
 
 # main function does something ugly but demonstrates beautifully
-mainp0:
+producer:
   push  $ra                 # save return address
 
   # initialization inputs
@@ -23,10 +23,10 @@ rand:
   ori   $a0, $zero, lck     # move lock to arguement register
   jal   lock                # try to aquire the lock
 
-  # critical code segment
+#------------------critical code segment-------------------
   or    $a0, $zero, $t8     # move random number to arguement register
   jal   gpush               # push the random number to the stack
-  # critial code segment
+#------------------critical code segment-------------------
 
   ori   $a0, $zero, lck     # move lock to arguement register
   jal   unlock              # release the lock
@@ -45,11 +45,11 @@ rand:
 #----------------------------------------------------------
   org   0x1000              # second processor p1
   ori   $sp, $zero, 0x7ffc  # stack
-  jal   mainp1              # go to program
+  jal   consumer            # go to program
   halt
 
 # main function does something ugly but demonstrates beautifully
-mainp1:
+consumer:
   push  $ra                 # save return address
   
   # initialize result registers
@@ -63,15 +63,15 @@ mainp1:
 
 # loop for all 256 values added to the stack
 readStack:
-  jal waitForPush           # wait until processor1 pushes to the stack
+  jal waitP1                # wait until processor1 pushes to the stack
 
   ori   $a0, $zero, lck     # move lock to arguement register
   jal   lock                # try to aquire the lock
 
-  # critical code segment                
+#------------------critical code segment-------------------               
   jal   gpop                # get random number off the stack    
   or    $s3, $zero, $v0     # move the random number to $s3
-  # critical code segment
+#------------------critical code segment-------------------
 
   ori   $a0, $zero, lck     # move lock to arguement register
   jal   unlock              # release the lock             
@@ -88,25 +88,30 @@ readStack:
   jal   max                 # calculate the max(a,b)
   or    $s1, $zero, $v0     # move the returned max to $s1
   
+  # sum calculation
   add   $s2, $s2, $a1
 
+  # loop
   addi  $t5, $t5, 1         # increment current loop count
   bne   $t5, $t6, readStack # loop if havent read all 256 random numbers
 
-  or    $a0, $zero, $s2
-  or    $a1, $zero, $t6
-  jal divide
-  or    $s2, $zero, $v0
-  or    $s3, $zero, $v1
+  # average calculation
+  or    $a0, $zero, $s2     # set arguement 0 for numerator
+  or    $a1, $zero, $t6     # set arguement 1 for denominator
+  jal divide                # divide the sum by 256
+  or    $s2, $zero, $v0     # set the average result register to the quotient
+  or    $s3, $zero, $v1     # set the remainder result register to the remainder
 
   pop   $ra                 # get return address
   jr    $ra                 # return to caller
 
-waitForPush:
-  ori   $t0, $zero, gsp
-  lw    $t1, 0($t0)
-  beq   $t1, $zero, waitForPush
-  jr    $ra  
+# wait for processor 1 to push a value to the global stack
+waitP1:
+  ori   $t0, $zero, gsp     # move the stack pointer to $t0
+  ori   $t1, $zero, 0x8000  # move the base address to $t1
+  lw    $t2, 0($t0)         # load the address of the top of the stack
+  beq   $t1, $t2, waitP1    # continue waiting if the stack is at 0x8000
+  jr    $ra                 # return to caller
 
 #----------------------------------------------------------
 # Lock/Unlock
@@ -137,58 +142,24 @@ lck:
 # Global Push/Pop
 #----------------------------------------------------------
 
-#gpush:
-#  ori   $t0, $zero, gsp     # move the stack pointer to $t0
-#  lw    $t2, 0($t0)         # load the address at the top of the stack
-#  addi  $t2, $t2, 4         # increment the stack pointer
-#  sw    $a0, 0($t2)         # store the word to the top of the stack
-#  sw    $t2, 0($t0)         # update the stack pointer
-#  jr    $ra                 # return to caller
-
-#gpop:
-#  ori   $t0, $zero, gsp     # move the stack pointer to $t0
-#  lw    $t1, 0($t0)         # load the address at the top of the stack
-#  lw    $v0, 0($t1)         # return word popped off the stack
-#  sw    $zero, 0($t1)       # store 0 to the old word
-#  addi  $t1, $t1, -4        # decrement the stack pointer
-#  sw    $t1, 0($t0)         # update the stack pointer
-#  jr    $ra                 # return to caller
-
 gpush:
-  ori    $t0, $zero, gsp
-  ori    $t1, $zero, gsb
-
-  lw     $t2, 0($t0)   
-  lw     $t3, 0($t1)
-
-  sub    $t3, $t3, $t2
-  sw     $a0, 0($t3)
-
-  addi   $t2, $t2, 4
-  sw     $t2, 0($t0)
-
-  jr     $ra
+  ori   $t0, $zero, gsp     # move the stack pointer to $t0
+  lw    $t2, 0($t0)         # load the address at the top of the stack
+  addi  $t2, $t2, 4         # increment the stack pointer
+  sw    $a0, 0($t2)         # store the word to the top of the stack
+  sw    $t2, 0($t0)         # update the stack pointer
+  jr    $ra                 # return to caller
 
 gpop:
-  ori    $t0, $zero, gsp
-  ori    $t1, $zero, gsb
-
-  lw     $t2, 0($t0)
-  lw     $t3, 0($t1)
-
-  addi   $t2, $t2, -4
-  sw     $t2, 0($t0)
-
-  sub    $t3, $t3, $t2
-  lw     $v0, 0($t3)
-
-  sw     $zero, 0($t3)
-
-  jr     $ra
+  ori   $t0, $zero, gsp     # move the stack pointer to $t0
+  lw    $t1, 0($t0)         # load the address at the top of the stack
+  lw    $v0, 0($t1)         # return word popped off the stack
+  sw    $zero, 0($t1)       # store 0 to the old word
+  addi  $t1, $t1, -4        # decrement the stack pointer
+  sw    $t1, 0($t0)         # update the stack pointer
+  jr    $ra                 # return to caller
 
 gsp:
-  cfw 0x0
-gsb:
   cfw 0x8000
 
 #----------------------------------------------------------
