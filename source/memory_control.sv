@@ -28,7 +28,7 @@ modport cc
             // ram outputs
             ramstore, ramaddr, ramWEN, ramREN,
             // coherence outputs to cache
-            ccwait, ccinv, ccsnoopaddress
+            ccwait, ccinv, ccsnoopaddr //UNUSED LAB 3-4
 */
 
   // type import
@@ -48,11 +48,16 @@ modport cc
     if (~nRST) begin
       mc_state <= IDLE;
       mc <= '0;
+      mc.iwait <= 2'b11;
+      mc.dwait <= 2'b11;
     end else begin
       mc_state <= next_mc_state;
+      // arb can prob change to a local variable since we dont use anything else in the struct lol, 
+      // unless we wanna do more w/ the struct <- delete
       mc <= next_mc; 
     end
   end
+
 
   always_comb begin: INPUT_LATCHING
     next_mc.iREN     = ccif.iREN;
@@ -65,8 +70,25 @@ modport cc
     next_mc.ramstate = ccif.ramstate;
     next_mc.ccwrite  = ccif.ccwrite;
     next_mc.cctrans  = ccif.cctrans;
+  end
+
+
+  always_comb begin: OPUTPUT_LATCHING
+    ccif.iwait          = (next_mc_state != mc_state) ? mc.iwait : 2'b11;
+    ccif.dwait          = (next_mc_state != mc_state) ? mc.dwait : 2'b11;
+    ccif.iload          = mc.iload;
+    ccif.dload          = mc.dload;
+    ccif.ramWEN         = mc.ramWEN;
+    ccif.ramREN         = mc.ramREN;
+    ccif.ramaddr        = mc.ramaddr;
+    ccif.ramstore       = mc.ramstore;
+    ccif.ccwait         = mc.ccwait;
+    ccif.ccinv          = mc.ccinv;
+    ccif.ccsnoopaddr    = mc.ccsnoopaddr;
     
   end
+
+
 
   always_comb begin: NEXT_LOGIC
   /*
@@ -79,7 +101,7 @@ modport cc
   */
 
     next_mc_state = mc_state;
-    next_mc.delay = mc.delay;
+    next_mc.delay = 0;
 
     case (mc_state)
       IDLE: begin
@@ -87,7 +109,7 @@ modport cc
           // go to PrRd when only dREN is high
           next_mc_state = PRRD;
         
-        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb]) //& ccif.dWEN[mc.arb]) 
+        else if (mc.dWEN[mc.arb] & ~mc.ccwrite[mc.arb]) 
           // go to general write to bus state when dWEN is high
           next_mc_state = CACWB;
 
@@ -146,15 +168,17 @@ modport cc
       
     endcase
 
-    if (mc.cctrans != 0) 
+    if (mc.cctrans != 0) begin
       next_mc_state = mc_state;
+      next_mc.delay = mc.delay;
+    end
 
-    if (next_mc_state != mc_state) begin
-      next_mc.delay = next_mc.delay + 1;
-      if (next_mc.delay == 1)
-        next_mc_state = mc_state;
-      else 
-        next_mc.delay = 0;
+    if (mc.delay == 4) begin
+      next_mc.delay = 0;
+    end
+    else if (next_mc_state != mc_state) begin
+      next_mc.delay = mc.delay + 1;
+      next_mc_state = mc_state;
     end
 
   end
@@ -170,32 +194,51 @@ modport cc
   */
 
     // Set defaults for cache inputs
-    ccif.iwait = 2'b11;
-    ccif.dwait = 2'b11;
-    ccif.iload = '0;
-    ccif.dload = '0;
+    next_mc.iwait = 2'b11;
+    next_mc.dwait = 2'b11;
+    next_mc.iload = '0;
+    next_mc.dload = '0;
 
     // Set memory defaults
-    ccif.ramWEN = 1'b0;
-    ccif.ramREN = 1'b0;
-    ccif.ramaddr  = '0;
-    ccif.ramstore = '0;
+    next_mc.ramWEN = 1'b0;
+    next_mc.ramREN = 1'b0;
+    next_mc.ramaddr  = '0;
+    next_mc.ramstore = '0;
     
     // Set coherence defaults
-    ccif.ccwait = '0;
-    ccif.ccinv  = '0;
-    ccif.ccsnoopaddr = '0;
+    next_mc.ccwait = '0;
+    next_mc.ccinv  = '0;
+    next_mc.ccsnoopaddr = '0;
 
     if (mc.cctrans[0] == 1) begin
-      ccif.ccsnoopaddr[1] = mc.daddr[0];
-      ccif.ccinv = 2'b10;
-      ccif.ccwait = 2'b10;
+      next_mc.ccsnoopaddr[1] = mc.daddr[0];
+      next_mc.ccinv = 2'b10;
+      next_mc.ccwait = 2'b10;
     end 
     else if (mc.cctrans[1] == 1) begin
-      ccif.ccsnoopaddr[0] = mc.daddr[1];
-      ccif.ccinv = 2'b01;
-      ccif.ccwait = 2'b01;
+      next_mc.ccsnoopaddr[0] = mc.daddr[1];
+      next_mc.ccinv = 2'b01;
+      next_mc.ccwait = 2'b01;
     end 
+
+    else if (mc.ccwait != 0) begin
+      next_mc.ramWEN = 1'b0;
+      next_mc.ramREN = 1'b0;
+    end
+    // else if (mc.delay != 0) begin
+    //   next_mc.iwait = 2'b11;
+    //   next_mc.dwait = 2'b11; 
+
+    //   next_mc.ccwait = mc.ccwait;
+    //   next_mc.ccinv  = mc.ccinv;
+    //   next_mc.ccsnoopaddr = mc.ccsnoopaddr;
+
+    //   next_mc.ramWEN = mc.ramWEN;
+    //   next_mc.ramREN = mc.ramREN;
+    //   next_mc.ramaddr  = mc.ramaddr;
+    //   next_mc.ramstore = mc.ramstore;
+
+    // end
     else begin 
       case (mc_state)
 
@@ -204,59 +247,59 @@ modport cc
       *********************/
       PRRD: begin //snoop into opposing cache
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       BUSRD1: begin //read from main mem
         // cache signals
-        ccif.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.dload[mc.arb] = mc.ramload;
+        next_mc.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dload[mc.arb] = mc.ramload;
 
         // memory signals
-        ccif.ramREN  = 1'b1;
-        ccif.ramaddr = mc.daddr[mc.arb];
+        next_mc.ramREN  = 1'b1;
+        next_mc.ramaddr = mc.daddr[mc.arb];
       end
 
       BUSRD2: begin //read from main mem
         // cache signals
-        ccif.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.dload[mc.arb] = mc.ramload;
+        next_mc.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dload[mc.arb] = mc.ramload;
 
         // memory signals
-        ccif.ramREN  = 1'b1;
-        ccif.ramaddr = mc.daddr[mc.arb]; 
+        next_mc.ramREN  = 1'b1;
+        next_mc.ramaddr = mc.daddr[mc.arb]; 
       end
 
       BUSWB1: begin //read from other cache, write to main mem
         // cache signals
-        ccif.dwait[mc.arb]  = ~(mc.ramstate == ACCESS); 
-        ccif.dload[mc.arb]  = mc.dstore[~mc.arb];
+        next_mc.dwait[mc.arb]  = ~(mc.ramstate == ACCESS); 
+        next_mc.dload[mc.arb]  = mc.dstore[~mc.arb];
 
         // memory signals
-        ccif.ramWEN   = 1'b1;
-        ccif.ramaddr  = mc.daddr[~mc.arb];
-        ccif.ramstore = mc.dstore[~mc.arb];
+        next_mc.ramWEN   = 1'b1;
+        next_mc.ramaddr  = mc.daddr[~mc.arb];
+        next_mc.ramstore = mc.dstore[~mc.arb];
 
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       BUSWB2: begin
         // cache signals
-        // ccif.dwait[~mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.dwait[mc.arb]  = ~(mc.ramstate == ACCESS);
-        ccif.dload[mc.arb]  = mc.dstore[~mc.arb];
+        // mc.dwait[~mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dwait[mc.arb]  = ~(mc.ramstate == ACCESS);
+        next_mc.dload[mc.arb]  = mc.dstore[~mc.arb];
 
         // memory signals
-        ccif.ramWEN   = 1'b1;
-        ccif.ramaddr  = mc.daddr[~mc.arb];
-        ccif.ramstore = mc.dstore[~mc.arb];
+        next_mc.ramWEN   = 1'b1;
+        next_mc.ramaddr  = mc.daddr[~mc.arb];
+        next_mc.ramstore = mc.dstore[~mc.arb];
 
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       /********************
@@ -264,58 +307,58 @@ modport cc
       *********************/
       PRWR: begin
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       BUSRDX1:  begin
         // cache signals
-        ccif.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.dload = mc.ramload;
+        next_mc.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dload = mc.ramload;
 
         // memory signals
-        ccif.ramREN  = 1'b1;
-        ccif.ramaddr = mc.daddr[mc.arb]; 
+        next_mc.ramREN  = 1'b1;
+        next_mc.ramaddr = mc.daddr[mc.arb]; 
 
         // coherency signals
-        ccif.ccwait[~mc.arb] = 1'b1; 
+        next_mc.ccwait[~mc.arb] = 1'b1; 
       end
 
       BUSRDX2:  begin
         // cache signals
-        ccif.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.dload = mc.ramload;
+        next_mc.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dload = mc.ramload;
 
         // memory signals
-        ccif.ramREN  = 1'b1;
-        ccif.ramaddr = mc.daddr[mc.arb];
+        next_mc.ramREN  = 1'b1;
+        next_mc.ramaddr = mc.daddr[mc.arb];
 
         // coherency signals
-        ccif.ccwait[~mc.arb] = 1'b1; // at least need this one so dcache isnt talking to cpu when we are invalidating <- delete
-        ccif.ccinv[~mc.arb]  = 1'b1;
+        next_mc.ccwait[~mc.arb] = 1'b1; // at least need this one so dcache isnt talking to cpu when we are invalidating <- delete
+        next_mc.ccinv[~mc.arb]  = 1'b1;
       end
 
       BUSWBX1:  begin
         // cache signals
-        // ccif.dwait[~mc.arb] = 1'b0;
-        ccif.dwait[mc.arb]  = 1'b0;
-        ccif.dload[mc.arb]  = mc.dstore[~mc.arb];
+        // mc.dwait[~mc.arb] = 1'b0;
+        next_mc.dwait[mc.arb]  = 1'b0;
+        next_mc.dload[mc.arb]  = mc.dstore[~mc.arb];
 
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       BUSWBX2:  begin
         // cache signals
-        // ccif.dwait[~mc.arb] = 1'b0;
-        ccif.dwait[mc.arb]  = 1'b0;
-        ccif.dload[mc.arb]  = mc.dstore[~mc.arb];
+        // mc.dwait[~mc.arb] = 1'b0;
+        next_mc.dwait[mc.arb]  = 1'b0;
+        next_mc.dload[mc.arb]  = mc.dstore[~mc.arb];
 
         // coherency signals
-        ccif.ccwait[~mc.arb]      = 1'b1;
-        ccif.ccinv[~mc.arb]       = 1'b1;
-        ccif.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccwait[~mc.arb]      = 1'b1;
+        next_mc.ccinv[~mc.arb]       = 1'b1;
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
       end
 
       /********************
@@ -323,12 +366,12 @@ modport cc
       *********************/
       IMEM: begin
         // cache signals
-        ccif.iwait[mc.arb] = ~(mc.ramstate == ACCESS);
-        ccif.iload[mc.arb] = mc.ramload;
+        next_mc.iwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.iload[mc.arb] = mc.ramload;
 
         // memory signals
-        ccif.ramREN  = 1'b1;
-        ccif.ramaddr = mc.iaddr[mc.arb];
+        next_mc.ramREN  = 1'b1;
+        next_mc.ramaddr = mc.iaddr[mc.arb];
       end
 
       /********************
@@ -336,12 +379,13 @@ modport cc
       *********************/
       CACWB: begin
         // memory signals
-        ccif.ramWEN   = 1'b1;
-        ccif.ramaddr  = mc.daddr[mc.arb];
-        ccif.ramstore = mc.dstore[mc.arb];
-        ccif.ccinv[~mc.arb]       = 1'b1;
+        next_mc.ramWEN   = 1'b1;
+        next_mc.ramaddr  = mc.daddr[mc.arb];
+        next_mc.ramstore = mc.dstore[mc.arb];
+        next_mc.ccsnoopaddr[~mc.arb] = mc.daddr[mc.arb];
+        next_mc.ccinv[~mc.arb]       = 1'b1;
 
-        ccif.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
+        next_mc.dwait[mc.arb] = ~(mc.ramstate == ACCESS);
       end
 
     endcase
@@ -351,10 +395,10 @@ modport cc
   always_comb begin : arbiternextlogic
       next_mc.arb = mc.arb;
 
-      if (mc_state == IDLE) begin //make sure to only flip the arbiter bit when nothing is going on
-        if (ccif.dREN[mc.arb] | ccif.dWEN[mc.arb] | ccif.iREN[mc.arb]) 
+      if (mc_state == IDLE && next_mc_state == IDLE) begin //make sure to only flip the arbiter bit when nothing is going on
+        if (mc.dREN[mc.arb] | mc.dWEN[mc.arb] | mc.iREN[mc.arb]) 
           next_mc.arb = mc.arb;
-        else if (ccif.dREN[~mc.arb] | ccif.dWEN[~mc.arb] | ccif.iREN[~mc.arb])
+        else if (mc.dREN[~mc.arb] | mc.dWEN[~mc.arb] | mc.iREN[~mc.arb])
           next_mc.arb = ~mc.arb;
       end 
   end

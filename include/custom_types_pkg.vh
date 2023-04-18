@@ -149,6 +149,10 @@ package custom_types_pkg;
     } lr_t;
 
     typedef struct packed {
+        logic [CACHE_W-2:0] arb;
+        logic [2:0] delay;
+
+        //inputs
         logic [CACHE_W-1:0] iREN;
         logic [CACHE_W-1:0] dREN;
         logic [CACHE_W-1:0] dWEN;
@@ -159,8 +163,20 @@ package custom_types_pkg;
         ramstate_t ramstate;
         logic [CACHE_W-1:0] ccwrite;
         logic [CACHE_W-1:0] cctrans; 
-        logic [CACHE_W-2:0] arb;
-        logic [1:0] delay;
+
+        //outputs
+        logic [CACHE_W-1:0] iwait;
+        logic [CACHE_W-1:0] dwait;
+        word_t [CACHE_W-1:0] iload;
+        word_t [CACHE_W-1:0] dload;
+        logic ramWEN;
+        logic ramREN;
+        word_t ramaddr;
+        word_t ramstore;
+        logic [CACHE_W-1:0] ccwait;
+        logic [CACHE_W-1:0] ccinv; 
+        logic [CACHE_W-1:0] ccsnoopaddr; 
+        
     } mc_t;
 
     typedef enum logic [3:0] {
