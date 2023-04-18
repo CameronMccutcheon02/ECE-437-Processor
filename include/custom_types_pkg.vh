@@ -175,7 +175,7 @@ package custom_types_pkg;
         word_t ramstore;
         logic [CACHE_W-1:0] ccwait;
         logic [CACHE_W-1:0] ccinv; 
-        logic [CACHE_W-1:0] ccsnoopaddr; 
+        word_t [CACHE_W-1:0] ccsnoopaddr; 
         
     } mc_t;
 
