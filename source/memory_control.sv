@@ -202,8 +202,8 @@ modport cc
     // Set memory defaults
     next_mc.ramWEN = 1'b0;
     next_mc.ramREN = 1'b0;
-    next_mc.ramaddr  = '0;
-    next_mc.ramstore = '0;
+    next_mc.ramaddr  = mc.ramaddr;
+    next_mc.ramstore = mc.ramstore;
     
     // Set coherence defaults
     next_mc.ccwait = '0;
@@ -221,10 +221,14 @@ modport cc
       next_mc.ccwait = 2'b01;
     end 
 
-    else if (mc.ccwait != 0) begin
-      next_mc.ramWEN = 1'b0;
-      next_mc.ramREN = 1'b0;
-    end
+    // else if (mc.ccwait != 0) begin
+    //   next_mc.ramWEN = 1'b0;
+    //   next_mc.ramREN = 1'b0;
+    //   next_mc.ramaddr  = mc.ramaddr;
+    //   next_mc.ramstore = mc.ramstore;
+
+
+    // end
     // else if (mc.delay != 0) begin
     //   next_mc.iwait = 2'b11;
     //   next_mc.dwait = 2'b11; 
@@ -390,6 +394,10 @@ modport cc
 
     endcase
     end
+
+
+    if (next_mc.ramaddr == 0)
+      next_mc.ramWEN = 0;
   end
 
   always_comb begin : arbiternextlogic
