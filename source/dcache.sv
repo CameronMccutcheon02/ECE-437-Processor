@@ -171,7 +171,7 @@ always_comb begin : memory_read_write_logic
                 nxt_dcache[datapath_index].LRU = (i == 1) ? 1 : 0;
             end
         end
-        if (cif.ccsnoopaddr == lr.addr) begin
+        if (cif.ccsnoopaddr == lr.addr & cif.ccinv) begin
             nxt_lr.addr = '0;
             nxt_lr.valid = 1'b0;
         end
@@ -223,6 +223,7 @@ always_comb begin : memory_read_write_logic
                             if (lr.addr == dcif.dmemaddr & lr.valid == 1'b1) begin // return 1 and store
                                 dcif.dmemload = 32'b1;
                                 nxt_lr.valid = 1'b0;
+                                cif.daddr = 0;
                             end
                             else if (lr.addr == dcif.dmemaddr & lr.valid == 1'b0) begin // return 0 and dont store
                                 dcif.dmemload = 32'b0;
@@ -232,6 +233,10 @@ always_comb begin : memory_read_write_logic
 
                                 nxt_dcache[datapath_index].LRU = dcache[datapath_index].LRU;
                             end
+                        end
+                        else if (lr.addr == dcif.dmemaddr) begin
+                            nxt_lr.valid = 0;
+                            nxt_lr.addr = 0;
                         end
 
                         break;
@@ -247,6 +252,10 @@ always_comb begin : memory_read_write_logic
 
         R1M:    begin
             cif.dREN = 1;
+            // if (dcif.datomic & dcif.dmemWEN) begin
+            //     cif.ccwrite = 1;
+            //     cif.dWEN = 1;
+            // end
             cif.daddr = {datapath_tag, datapath_index, 1'b0, 2'b00};
             if (~cif.dwait) begin 
                 nxt_dcache[datapath_index].frame[dcache[datapath_index].LRU].data[0] = cif.dload;

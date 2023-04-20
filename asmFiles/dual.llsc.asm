@@ -20,7 +20,13 @@
   ll    $3, 8($2)
   addiu   $3, $3, 0x01
   sw    $3, 8($2)
+  nop
+  nop
+  nop
   sc    $3, 8($2)
+  nop
+  nop
+  nop
   sw    $3, 8($2)
 
   halt      # that's all
@@ -42,6 +48,9 @@
   addiu   $3, $3, 0x01
   sw    $3, 8($2)
   sc    $3, 8($2)
+  nop
+  nop
+  nop
   sw    $3, 8($2)
 
   halt      # that's all

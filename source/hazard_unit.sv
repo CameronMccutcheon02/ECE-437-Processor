@@ -26,7 +26,7 @@ module hazard_unit (
             //we freeze our stages until the dhit signal pulls these two back to low
         end
 
-        else if (huif.memread_dc) begin //read-use case
+        else if (huif.memread_dc | (huif.memwrite_dc & huif.mematomic_dc)) begin //read-use case
             if ((huif.Rt_dc == huif.Rs_ft) | (huif.Rt_dc == huif.Rt_ft)) begin
                 huif.flush = 4'b0100; // flush decode/execute latch if load dependency
                 huif.freeze = 4'b1000; // freeze pc and fetch/decode latch if load dependency

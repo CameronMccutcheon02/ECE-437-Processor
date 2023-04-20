@@ -92,6 +92,8 @@ module datapath (
 // Hazard unit
   always_comb begin: hazard_unit
     huif.memread_dc = dcif.decode_p.dREN;
+    huif.memwrite_dc = dcif.decode_p.dWEN;
+    huif.mematomic_dc = dcif.decode_p.atomic;
     huif.memread_ex = exif.execute_p.dREN;
     huif.memwrite_ex = exif.execute_p.dWEN;
     //Rt's

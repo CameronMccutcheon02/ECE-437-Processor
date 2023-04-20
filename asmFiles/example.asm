@@ -16,6 +16,7 @@
 lock:
 aquire:
   ll    $t0, 0($a0)         # load lock location
+  nop
   bne   $t0, $0, aquire     # wait on lock to be open
   addiu $t0, $t0, 1
   sc    $t0, 0($a0)
